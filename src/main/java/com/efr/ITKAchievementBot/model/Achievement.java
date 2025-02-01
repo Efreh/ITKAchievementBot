@@ -16,5 +16,5 @@ public class Achievement {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private UserDB user;
 }
