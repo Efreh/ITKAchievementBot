@@ -12,6 +12,8 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
+import java.util.Optional;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
 
         // Получаем ID чата (группы или личного чата)
         Long chatId = message.getChatId();
+        int threadChatId = Optional.ofNullable(message.getMessageThreadId()).orElse(0);
 
         // Получаем отправителя сообщения
         User telegramUser = message.getFrom();
@@ -35,7 +38,7 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
         Long userId = telegramUser.getId(); // Уникальный ID пользователя в Telegram
 
         // Сохраняем/обновляем пользователя
-        UserDB user = userService.findByChatId(userId);
+        UserDB user = userService.findByTelegramIdAndChatId(userId,chatId);
         if (user == null) {
             user = new UserDB();
             user.setTelegramId(userId);
@@ -50,10 +53,11 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
         // Проверка достижений
         achievementService.checkAchievements(user, message, this);
 
-        log.info("Сообщение от {} (@{}) в чате {}",
+        log.info("Сообщение от {} (@{}) в чате {} + подчат {}",
                 userId,
                 userName,
-                chatId);
+                chatId,
+                threadChatId);
     }
 
     @Override

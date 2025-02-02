@@ -1,15 +1,17 @@
 package com.efr.ITKAchievementBot.bot.handlers.achievements;
 
 import com.efr.ITKAchievementBot.bot.handlers.BaseAchievementHandler;
+import com.efr.ITKAchievementBot.bot.service.AchievementImageGenerator;
 import com.efr.ITKAchievementBot.model.UserDB;
 import org.springframework.stereotype.Component;
 
 @Component
 class FirstMessageHandler extends BaseAchievementHandler {
-    public FirstMessageHandler() {
-        super("first_message",
-                "images/first_message.jpg",
-                "Первое сообщение в чате!");
+    public FirstMessageHandler(AchievementImageGenerator imageGenerator) {
+        super(imageGenerator,
+                "first_message",
+                "Глас имеющий",
+                "Написал первое сообщение в чате!");
     }
 
     @Override

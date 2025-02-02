@@ -16,7 +16,10 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public UserDB findByChatId (Long telegramId){
+    public UserDB findByTelegramId(Long telegramId){
         return userRepository.findByTelegramId(telegramId);
+    }
+    public UserDB findByTelegramIdAndChatId(Long telegramId, Long chatId){
+        return userRepository.findByTelegramIdAndChatId(telegramId, chatId);
     }
 }

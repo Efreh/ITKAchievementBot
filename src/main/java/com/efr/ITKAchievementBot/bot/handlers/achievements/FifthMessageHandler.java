@@ -1,15 +1,17 @@
 package com.efr.ITKAchievementBot.bot.handlers.achievements;
 
 import com.efr.ITKAchievementBot.bot.handlers.BaseAchievementHandler;
+import com.efr.ITKAchievementBot.bot.service.AchievementImageGenerator;
 import com.efr.ITKAchievementBot.model.UserDB;
 import org.springframework.stereotype.Component;
 
 @Component
 class FifthMessageHandler extends BaseAchievementHandler {
-    public FifthMessageHandler() {
-        super("fifth_message",
-                "images/fifth_message.jpg",
-                "5 сообщений в чате!");
+    public FifthMessageHandler(AchievementImageGenerator imageGenerator) {
+        super(imageGenerator,
+                "fifth_message",
+                "Социальный",
+                "Отправлено 5 сообщений в чате!");
     }
 
     @Override
