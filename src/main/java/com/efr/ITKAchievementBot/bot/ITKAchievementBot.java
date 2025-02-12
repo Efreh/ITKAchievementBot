@@ -10,14 +10,13 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
-
 import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class ITKAchievementBot extends TelegramLongPollingBot {
+
     private final UserService userService;
     private final BotVariable botVariable;
     private final AchievementService achievementService;
@@ -27,37 +26,33 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
         if (!update.hasMessage()) return;
 
         Message message = update.getMessage();
-
-        // Получаем ID чата (группы или личного чата)
         Long chatId = message.getChatId();
         int threadChatId = Optional.ofNullable(message.getMessageThreadId()).orElse(0);
 
-        // Получаем отправителя сообщения
-        User telegramUser = message.getFrom();
+        // Получаем данные отправителя
+        org.telegram.telegrambots.meta.api.objects.User telegramUser = message.getFrom();
         String userName = telegramUser.getUserName();
-        Long userId = telegramUser.getId(); // Уникальный ID пользователя в Telegram
+        Long userId = telegramUser.getId();
 
-        // Сохраняем/обновляем пользователя
-        UserDB user = userService.findByTelegramIdAndChatId(userId,chatId);
+        // Находим пользователя по telegramId и chatId, либо создаём нового
+        UserDB user = userService.findByTelegramIdAndChatId(userId, chatId);
         if (user == null) {
             user = new UserDB();
             user.setTelegramId(userId);
             user.setUserName(userName);
-            user.setChatId(chatId); // Сохраняем ID чата, где было отправлено сообщение
+            user.setChatId(chatId);
             user.setMessageCount(0);
         }
 
+        // Увеличиваем счётчик сообщений
         user.setMessageCount(user.getMessageCount() + 1);
         userService.saveUser(user);
 
-        // Проверка достижений
+        // Проверяем достижения
         achievementService.checkAchievements(user, message, this);
 
         log.info("Сообщение от {} (@{}) в чате {} + подчат {}",
-                userId,
-                userName,
-                chatId,
-                threadChatId);
+                userId, userName, chatId, threadChatId);
     }
 
     @Override
