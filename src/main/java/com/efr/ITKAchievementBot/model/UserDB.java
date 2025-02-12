@@ -17,7 +17,9 @@ public class UserDB {
     private Long telegramId; // Уникальный идентификатор пользователя в Telegram
     private Long chatId;     // ID чата (группы или личного чата)
     private String userName;
-    private Integer messageCount;
+    private Integer messageCount = 0;
+    private Integer mediaCount = 0;
+    private Integer likesReceived = 0;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_id"))

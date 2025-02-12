@@ -87,14 +87,23 @@ public class AchievementImageGenerator {
         StringBuilder currentLine = new StringBuilder();
 
         for (String word : words) {
+            // Если добавление нового слова превышает максимальную длину строки
             if (currentLine.length() + word.length() + 1 > maxLineLength) {
-                lines.add(currentLine.toString().trim());
-                currentLine = new StringBuilder();
+                // Если текущая строка не пустая, добавляем её в результат
+                if (currentLine.length() > 0) {
+                    lines.add(currentLine.toString().trim());
+                    currentLine = new StringBuilder();
+                }
+                // Если слово само по себе длиннее максимальной строки, разбиваем его
+                while (word.length() > maxLineLength) {
+                    lines.add(word.substring(0, maxLineLength));
+                    word = word.substring(maxLineLength);
+                }
             }
             currentLine.append(word).append(" ");
         }
 
-        // Добавляем последнюю строку
+        // Добавляем последнюю строку, если она не пустая
         if (currentLine.length() > 0) {
             lines.add(currentLine.toString().trim());
         }

@@ -20,7 +20,7 @@ public class AchievementService {
             try {
                 handler.handle(user, message, bot);
             } catch (TelegramApiException e) {
-//                log.error("Error handling achievement", e);
+                // Обработка ошибок
             }
         });
     }
