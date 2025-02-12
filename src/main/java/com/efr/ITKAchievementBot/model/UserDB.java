@@ -19,7 +19,11 @@ public class UserDB {
     private String userName;
     private Integer messageCount;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_achievements", joinColumns = @JoinColumn(name = "user_id"))
-    private Set<String> achievements = new HashSet<>();
+    // Новые поля для статистики
+    private Integer reactionCount; // Общее количество реакций на сообщения пользователя
+    private Integer mediaCount;    // Общее количество отправленных медиафайлов
+    private Integer stickerCount;  // Общее количество отправленных стикеров
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Achievement> achievements = new HashSet<>();
 }

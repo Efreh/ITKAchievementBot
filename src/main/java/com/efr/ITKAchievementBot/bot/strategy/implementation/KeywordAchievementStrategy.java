@@ -1,5 +1,6 @@
-package com.efr.ITKAchievementBot.bot.strategy;
+package com.efr.ITKAchievementBot.bot.strategy.implementation;
 
+import com.efr.ITKAchievementBot.bot.strategy.AchievementStrategy;
 import com.efr.ITKAchievementBot.model.AchievementDefinition;
 import com.efr.ITKAchievementBot.model.UserDB;
 import org.springframework.stereotype.Component;

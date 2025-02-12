@@ -39,13 +39,27 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
         if (user == null) {
             user = new UserDB();
             user.setTelegramId(userId);
-            user.setUserName(userName);
             user.setChatId(chatId);
+            user.setUserName(message.getFrom().getUserName());
             user.setMessageCount(0);
+            user.setReactionCount(0);
+            user.setMediaCount(0);
+            user.setStickerCount(0);
         }
 
         // Увеличиваем счётчик сообщений
         user.setMessageCount(user.getMessageCount() + 1);
+
+        // Обновляем счётчик медиа
+        if (message.hasPhoto() || message.hasVideo() || message.hasDocument() || message.hasVoice()) {
+            user.setMediaCount(user.getMediaCount() + 1);
+        }
+
+        // Обновляем счётчик стикеров
+        if (message.hasSticker()) {
+            user.setStickerCount(user.getStickerCount() + 1);
+        }
+
         userService.saveUser(user);
 
         // Проверяем достижения

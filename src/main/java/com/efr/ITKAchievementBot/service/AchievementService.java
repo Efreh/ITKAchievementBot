@@ -18,6 +18,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -31,24 +32,28 @@ public class AchievementService {
     private final AchievementImageGenerator imageGenerator;
 
     public void checkAchievements(UserDB user, Message message, ITKAchievementBot bot) {
-        // Получаем все определения достижений.
-        // Если в будущем появится несколько типов – можно добавить фильтрацию.
+        // Загружаем все достижения пользователя одним запросом
+        List<Achievement> userAchievements = achievementRepository.findByUserWithDefinition(user);
+
+        // Получаем все определения достижений
         List<AchievementDefinition> definitions = definitionRepository.findAll();
 
         for (AchievementDefinition definition : definitions) {
-            // Если пользователь уже получил это достижение, пропускаем
-            if (achievementRepository.existsByUserAndName(user, definition.getName())) {
-                continue;
+            // Проверяем, есть ли у пользователя это достижение
+            boolean hasAchievement = userAchievements.stream()
+                    .anyMatch(a -> a.getDefinition().getId().equals(definition.getId()));
+
+            if (hasAchievement) {
+                continue; // Пропускаем, если достижение уже есть
             }
 
             // Получаем стратегию для данного типа достижения
             AchievementStrategy strategy = strategyFactory.getStrategy(definition.getType());
             if (strategy == null) {
-                // Если для данного типа нет стратегии, пропускаем
-                continue;
+                continue; // Пропускаем, если стратегия не найдена
             }
 
-            // В классе AchievementService
+            // Проверяем, выполнено ли условие достижения
             if (strategy.isSatisfied(user, definition, message)) {
                 awardAchievement(user, definition, message, bot);
             }
@@ -62,16 +67,14 @@ public class AchievementService {
         try {
             sendAchievementNotification(user, message, bot, imageFile, definition.getTitle());
         } catch (TelegramApiException e) {
-            // Можно добавить логирование ошибки
-            e.printStackTrace();
+            log.error("Ошибка при отправке уведомления о достижении", e);
         }
 
         // Сохраняем выданное достижение в БД
         Achievement achievement = new Achievement();
-        achievement.setName(definition.getName());
-        achievement.setTitle(definition.getTitle());
-        achievement.setDescription(definition.getDescription());
         achievement.setUser(user);
+        achievement.setDefinition(definition);
+        achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
     }
 
