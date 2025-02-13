@@ -9,6 +9,7 @@ import com.efr.ITKAchievementBot.model.AchievementDefinition;
 import com.efr.ITKAchievementBot.model.UserDB;
 import com.efr.ITKAchievementBot.repository.AchievementDefinitionRepository;
 import com.efr.ITKAchievementBot.repository.AchievementRepository;
+import com.efr.ITKAchievementBot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class AchievementService {
     private final AchievementRepository achievementRepository;
     private final AchievementStrategyFactory strategyFactory;
     private final AchievementImageGenerator imageGenerator;
+    private final UserRepository userRepository;
 
     public void checkAchievements(UserDB user, Message message, ITKAchievementBot bot) {
         // Загружаем все достижения пользователя одним запросом
@@ -55,12 +57,12 @@ public class AchievementService {
 
             // Проверяем, выполнено ли условие достижения
             if (strategy.isSatisfied(user, definition, message)) {
-                awardAchievement(user, definition, message, bot);
+                awardBaseAchievement(user, definition, message, bot);
             }
         }
     }
 
-    private void awardAchievement(UserDB user, AchievementDefinition definition, Message message, ITKAchievementBot bot) {
+    private void awardBaseAchievement(UserDB user, AchievementDefinition definition, Message message, ITKAchievementBot bot) {
         // Генерируем изображение достижения
         File imageFile = imageGenerator.createAchievementImage(definition.getTitle(), definition.getDescription());
 
@@ -91,6 +93,51 @@ public class AchievementService {
         } finally {
             // Удаляем временный файл
             imageFile.delete();
+        }
+    }
+
+    public void awardCustomAchievement(String userTag, String title, String description, Long chatId, ITKAchievementBot bot) {
+        UserDB user = userRepository.findByUserTagAndChatId(userTag, chatId);
+
+        if (user == null) {
+            user = new UserDB();
+            user.setUserTag(userTag);
+            user.setChatId(chatId);
+            user = userRepository.save(user);
+        }
+
+        AchievementDefinition definition = new AchievementDefinition();
+        definition.setTitle(title);
+        definition.setDescription(description);
+        definition.setType("custom");
+        definition = definitionRepository.save(definition);
+
+        Achievement achievement = new Achievement();
+        achievement.setUser(user);
+        achievement.setDefinition(definition);
+        achievement.setAwardedAt(LocalDateTime.now());
+        achievementRepository.save(achievement);
+
+        try {
+            File image = imageGenerator.createAchievementImage(title, description);
+            sendCustomAchievementNotification(userTag, chatId, bot, image, title);
+        } catch (Exception e) {
+            log.error("Error generating achievement image", e);
+        }
+    }
+
+    private void sendCustomAchievementNotification(String userTag, Long chatId, ITKAchievementBot bot, File image, String title) {
+        SendPhoto photo = new SendPhoto();
+        photo.setChatId(chatId.toString());
+        photo.setCaption(userTag + " получает достижение: " + title + "!");
+
+        try {
+            photo.setPhoto(new InputFile(image));
+            bot.execute(photo);
+        } catch (TelegramApiException e) {
+            log.error("Ошибка отправки достижения", e);
+        } finally {
+            image.delete();
         }
     }
 }

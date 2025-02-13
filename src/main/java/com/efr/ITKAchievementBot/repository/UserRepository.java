@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserRepository extends JpaRepository<UserDB, Long> {
     UserDB findByTelegramId(Long telegramId);
     UserDB findByTelegramIdAndChatId(Long telegramId, Long chatId);
+
+    UserDB findByUserTagAndChatId(String userTag, Long chatId);
 }

@@ -22,7 +22,7 @@ INSERT INTO achievement_definition (name, title, description, type, required_key
 VALUES ('syntax_necromancer', 'Синтаксический Некромант', 'Воскреси "умершую" переменную — скажи "рефакторинг"', 'keyword', 'рефакторинг');
 
 INSERT INTO achievement_definition (name, title, description, type, required_keyword)
-VALUES ('hunter_became_prey', 'Охотник стал добычей', 'Упомяни "кабанчик" в беседе', 'keyword', 'кабанчик');
+VALUES ('hunter_became_prey', 'Охотник стал добычей', 'Упомяни "Высоко-нагруженные приложения." в беседе', 'keyword', 'кабанчик');
 
 INSERT INTO achievement_definition (name, title, description, type, required_keyword)
 VALUES ('keeper_secret_keys', 'Хранитель Секретных Ключей', 'Упомяни "API ключ" в беседе', 'keyword', 'API ключ');

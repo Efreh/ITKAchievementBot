@@ -12,4 +12,6 @@ import org.springframework.context.annotation.Configuration;
 public class BotVariable {
     private String token;
     private String username;
+    private String groupId;
+    private String administratorId;
 }
