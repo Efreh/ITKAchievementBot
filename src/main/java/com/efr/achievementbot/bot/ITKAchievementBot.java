@@ -43,14 +43,23 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
 
         if (!update.hasMessage()) return;
 
-        // Обработка админских команд (без прерывания потока)
-        if (isAdmin(update.getMessage().getFrom().getId())) {
-            handleAdminCommands(update);
-            // Убираем return чтобы продолжить обработку
-        }
-
         Message message = update.getMessage();
         Long chatId = message.getChatId();
+
+        // Логируем ID всех чатов
+        log.info("Получено сообщение из чата ID: {}", chatId);
+
+        // Проверяем разрешенные чаты
+        if (!isAllowedChat(chatId, message.getFrom().getId())) {
+            log.info("Чат {} не разрешен для обработки", chatId);
+            return;
+        }
+
+        // Обработка админских команд
+        if (isAdmin(message.getFrom().getId())) {
+            handleAdminCommands(update);
+        }
+
         int threadChatId = Optional.ofNullable(message.getMessageThreadId()).orElse(0);
 
         // Получаем данные отправителя
@@ -257,5 +266,13 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
     }
     private boolean isAdmin(Long userId) {
         return userId.toString().equals(botVariable.getAdministratorId());
+    }
+
+    private boolean isAllowedChat(Long chatId, Long senderId) {
+        // Разрешаем:
+        // 1. Группу из конфига
+        // 2. Личные сообщения админа
+        return chatId.toString().equals(botVariable.getGroupId()) ||
+                (isAdmin(senderId) && chatId > 0);
     }
 }

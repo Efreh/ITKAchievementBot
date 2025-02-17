@@ -14,6 +14,6 @@ public class KeywordAchievementStrategy implements AchievementStrategy {
 
         String requiredKeyword = definition.getRequiredKeyword();
         return requiredKeyword != null &&
-                message.getText().toLowerCase().contains(requiredKeyword.toLowerCase());
+                message.getText().equalsIgnoreCase(requiredKeyword);
     }
 }
