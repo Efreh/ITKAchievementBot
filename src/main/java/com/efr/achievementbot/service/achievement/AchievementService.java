@@ -30,6 +30,7 @@ public class AchievementService {
     private final AchievementStrategyFactory strategyFactory;
     private final AchievementImageGenerator imageGenerator;
     private final UserRepository userRepository;
+    private final AchievementDefinitionService achievementDefinitionService;
     // Компонент для отправки уведомлений
     private final AchievementNotificationService notificationService;
 
@@ -45,7 +46,7 @@ public class AchievementService {
         // Получаем достижения пользователя
         List<Achievement> userAchievements = achievementRepository.findByUserWithDefinition(user);
         // Загружаем все определения достижений
-        List<AchievementDefinition> definitions = definitionRepository.findAll();
+        List<AchievementDefinition> definitions = achievementDefinitionService.getAllDefinitions();
 
         for (AchievementDefinition definition : definitions) {
             // Пропускаем, если достижение уже получено

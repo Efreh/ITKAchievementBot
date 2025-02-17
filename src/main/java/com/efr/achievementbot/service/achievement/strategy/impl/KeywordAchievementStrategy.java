@@ -28,4 +28,9 @@ public class KeywordAchievementStrategy implements AchievementStrategy {
         Matcher matcher = pattern.matcher(text);
         return matcher.find();
     }
+
+    @Override
+    public String getType() {
+        return "keyword";
+    }
 }

@@ -8,8 +8,14 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 
 @Component
 public class StickerStrategy implements AchievementStrategy {
+
     @Override
     public boolean isSatisfied(UserDB user, AchievementDefinition definition, Message message) {
         return user.getStickerCount() >= definition.getRequiredValue();
+    }
+
+    @Override
+    public String getType() {
+        return "sticker";
     }
 }
