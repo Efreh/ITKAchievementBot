@@ -1,9 +1,9 @@
-package com.efr.achievementbot.bot.service;
+package com.efr.achievementbot.bot.admin;
 
 import lombok.Getter;
 import lombok.Setter;
 
-// Класс для хранения состояния диалога
+// Класс для хранения состояния админской сессии
 @Getter
 @Setter
 public class AdminSession {
