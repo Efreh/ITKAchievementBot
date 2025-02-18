@@ -20,6 +20,7 @@ public class UserDB {
     private String userName; // Имя пользователя
 
     private Integer messageCount;
+    private Integer weeklyMessageCount;
     private Integer reactionCount;
     private Integer mediaCount;
     private Integer stickerCount;

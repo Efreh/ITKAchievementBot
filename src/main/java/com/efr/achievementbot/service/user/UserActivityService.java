@@ -40,12 +40,16 @@ public class UserActivityService {
             user.setReactionCount(0);
             user.setMediaCount(0);
             user.setStickerCount(0);
+            user.setWeeklyMessageCount(0);
         } else if (userTag != null && !userTag.equals(user.getUserTag())) {
             user.setUserTag(userTag);
         }
 
         // Увеличиваем счетчик сообщений
         user.setMessageCount(user.getMessageCount() + 1);
+
+        // Обновление еженедельного счетчика
+        user.setWeeklyMessageCount(user.getWeeklyMessageCount() + 1);
 
         // Обновляем счетчик медиа, если сообщение содержит фото, видео, документ или голосовое сообщение
         if (message.hasPhoto() || message.hasVideo() || message.hasDocument() || message.hasVoice()) {
