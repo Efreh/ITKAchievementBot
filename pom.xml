@@ -9,8 +9,8 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.efr</groupId>
-	<artifactId>ITKAchievementBot</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>JavaCodeBot</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
 	<name>ITKAchievementBot</name>
 	<description>Telegram bot for ITK</description>
 	<url/>
