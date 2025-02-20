@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS achievement_definition (
     description VARCHAR(255),
     type VARCHAR(50),
     required_value INT,
-    required_keyword VARCHAR(255)
+    required_keyword VARCHAR(255),
+    weight INT
 );

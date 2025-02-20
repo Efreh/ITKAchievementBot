@@ -31,77 +31,50 @@ public class AchievementService {
     private final AchievementImageGenerator imageGenerator;
     private final UserRepository userRepository;
     private final AchievementDefinitionService achievementDefinitionService;
-    // Компонент для отправки уведомлений
     private final AchievementNotificationService notificationService;
 
-    /**
-     * Проверка достижений для пользователя.
-     *
-     * @param user    пользователь из БД
-     * @param message сообщение из Telegram
-     * @param bot     экземпляр Telegram-бота
-     */
     public void checkAchievements(UserDB user, Message message, ITKAchievementBot bot) {
         log.info("Проверка достижений для пользователя {} (telegramId: {})", user.getUserName(), user.getTelegramId());
-        // Получаем достижения пользователя
         List<Achievement> userAchievements = achievementRepository.findByUserWithDefinition(user);
-        // Загружаем все определения достижений
         List<AchievementDefinition> definitions = achievementDefinitionService.getAllDefinitions();
 
         for (AchievementDefinition definition : definitions) {
-            // Пропускаем, если достижение уже получено
             boolean hasAchievement = userAchievements.stream()
                     .anyMatch(a -> a.getDefinition().getId().equals(definition.getId()));
             if (hasAchievement) {
                 continue;
             }
-
-            // Получаем стратегию для проверки достижения по типу
             AchievementStrategy strategy = strategyFactory.getStrategy(definition.getType());
             if (strategy == null) {
                 continue;
             }
-
-            // Если условие выполнено – выдаем достижение
             if (strategy.isSatisfied(user, definition, message)) {
                 awardBaseAchievement(user, definition, message, bot);
             }
         }
     }
 
-    /**
-     * Выдача стандартного достижения.
-     *
-     * @param user       пользователь
-     * @param definition определение достижения
-     * @param message    сообщение из Telegram
-     * @param bot        экземпляр Telegram-бота
-     */
     private void awardBaseAchievement(UserDB user, AchievementDefinition definition, Message message, ITKAchievementBot bot) {
         log.info("Выдача достижения '{}' пользователю '{}'", definition.getTitle(), user.getUserName());
-        // Генерируем изображение достижения
         File imageFile = imageGenerator.createAchievementImage(definition.getTitle(), definition.getDescription());
-        // Асинхронная отправка уведомления
         notificationService.sendAchievementNotification(user, message, bot, imageFile, definition.getTitle());
 
-        // Сохраняем выданное достижение в БД
         Achievement achievement = new Achievement();
         achievement.setUser(user);
         achievement.setDefinition(definition);
         achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
+
+        // Начисляем очки за достижение
+        int weight = definition.getWeight() != null ? definition.getWeight() : 1;
+        user.setAchievementScore((user.getAchievementScore() != null ? user.getAchievementScore() : 0) + weight);
+        user.setWeeklyAchievementScore((user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + weight);
+        user.setMonthlyAchievementScore((user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + weight);
+        userRepository.save(user);
+
         log.info("Достижение '{}' успешно выдано пользователю '{}'", definition.getTitle(), user.getUserName());
     }
 
-    /**
-     * Выдача кастомного достижения.
-     *
-     * @param userTag     тег пользователя (формат @username)
-     * @param title       заголовок достижения
-     * @param description описание достижения
-     * @param chatId      ID чата, где требуется выдача
-     * @param bot         экземпляр Telegram-бота
-     */
     public void awardCustomAchievement(String userTag, String title, String description, Long chatId, ITKAchievementBot bot) {
         log.info("Выдача кастомного достижения '{}' для пользователя с тегом '{}'", title, userTag);
         UserDB user = userRepository.findByUserTagAndChatId(userTag, chatId);
@@ -116,6 +89,8 @@ public class AchievementService {
         definition.setTitle(title);
         definition.setDescription(description);
         definition.setType("custom");
+        // Задаём вес для кастомного достижения (например, 3 очка, можно регулировать по необходимости)
+        definition.setWeight(3);
         definition = definitionRepository.save(definition);
 
         Achievement achievement = new Achievement();
@@ -124,7 +99,13 @@ public class AchievementService {
         achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
 
-        // Генерация изображения достижения
+        // Начисляем очки за достижение
+        int weight = definition.getWeight() != null ? definition.getWeight() : 1;
+        user.setAchievementScore((user.getAchievementScore() != null ? user.getAchievementScore() : 0) + weight);
+        user.setWeeklyAchievementScore((user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + weight);
+        user.setMonthlyAchievementScore((user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + weight);
+        userRepository.save(user);
+
         try {
             File image = imageGenerator.createAchievementImage(title, description);
             notificationService.sendCustomAchievementNotification(userTag, chatId, bot, image, title);

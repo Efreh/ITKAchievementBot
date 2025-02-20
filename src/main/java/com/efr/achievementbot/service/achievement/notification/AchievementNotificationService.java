@@ -34,7 +34,7 @@ public class AchievementNotificationService {
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(user.getChatId().toString());
         sendPhoto.setMessageThreadId(message.getMessageThreadId());
-        sendPhoto.setCaption(user.getUserName() + " получает достижение: " + achievementTitle + "!");
+        sendPhoto.setCaption(user.getUserTag() + " получает достижение: " + achievementTitle + "!");
         sendPhoto.setPhoto(new InputFile(imageFile));
         try {
             bot.execute(sendPhoto);
