@@ -15,7 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ITKAchievementBot extends TelegramLongPollingBot {
+public class JavaCodeBot extends TelegramLongPollingBot {
 
     private final UserActivityService userActivityService;
     private final BotProperties botProperties;

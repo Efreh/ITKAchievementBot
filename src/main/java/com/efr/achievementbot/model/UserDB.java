@@ -3,13 +3,17 @@ package com.efr.achievementbot.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.HashSet;
 import java.util.Set;
 
 /**
  * Сущность пользователя Telegram для хранения статистики и достижений.
  */
-@Data
+@Getter
+@Setter
 @Entity(name = "users")
 @EqualsAndHashCode(exclude = {"achievements"})
 public class UserDB {

@@ -1,6 +1,6 @@
 package com.efr.achievementbot.service.achievement;
 
-import com.efr.achievementbot.bot.ITKAchievementBot;
+import com.efr.achievementbot.bot.JavaCodeBot;
 import com.efr.achievementbot.model.Achievement;
 import com.efr.achievementbot.model.AchievementDefinition;
 import com.efr.achievementbot.model.UserDB;
@@ -37,7 +37,7 @@ public class AchievementService {
      * Проверяет, соответствует ли активность пользователя условиям достижения.
      * Если условие выполнено, выдаёт достижение и начисляет очки.
      */
-    public void checkAchievements(UserDB user, Message message, ITKAchievementBot bot) {
+    public void checkAchievements(UserDB user, Message message, JavaCodeBot bot) {
         log.info("Проверка достижений для пользователя {} (telegramId: {})", user.getUserName(), user.getTelegramId());
         List<Achievement> userAchievements = achievementRepository.findByUserWithDefinition(user);
         List<AchievementDefinition> definitions = achievementDefinitionService.getAllDefinitions();
@@ -59,7 +59,7 @@ public class AchievementService {
     /**
      * Выдаёт стандартное достижение и начисляет очки.
      */
-    private void awardBaseAchievement(UserDB user, AchievementDefinition definition, Message message, ITKAchievementBot bot) {
+    private void awardBaseAchievement(UserDB user, AchievementDefinition definition, Message message, JavaCodeBot bot) {
         log.info("Выдача достижения '{}' пользователю '{}'", definition.getTitle(), user.getUserName());
         File imageFile = imageGenerator.createAchievementImage(definition.getTitle(), definition.getDescription());
         notificationService.sendAchievementNotification(user, message, bot, imageFile, definition.getTitle());
@@ -79,7 +79,7 @@ public class AchievementService {
     /**
      * Выдаёт кастомное достижение для пользователя по указанному тегу.
      */
-    public void awardCustomAchievement(String userTag, String title, String description, Long chatId, ITKAchievementBot bot) {
+    public void awardCustomAchievement(String userTag, String title, String description, Long chatId, JavaCodeBot bot) {
         log.info("Выдача кастомного достижения '{}' для пользователя с тегом '{}'", title, userTag);
         UserDB user = userRepository.findByUserTagAndChatId(userTag, chatId);
         if (user == null) {

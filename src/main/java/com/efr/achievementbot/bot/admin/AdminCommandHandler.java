@@ -1,6 +1,6 @@
 package com.efr.achievementbot.bot.admin;
 
-import com.efr.achievementbot.bot.ITKAchievementBot;
+import com.efr.achievementbot.bot.JavaCodeBot;
 import com.efr.achievementbot.config.BotProperties;
 import com.efr.achievementbot.service.achievement.AchievementService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class AdminCommandHandler {
     /**
      * Обрабатывает входящие админские команды.
      */
-    public void handleAdminCommand(Update update, ITKAchievementBot bot) {
+    public void handleAdminCommand(Update update, JavaCodeBot bot) {
         Message message = update.getMessage();
         if (!message.hasText()) return;
 
@@ -67,7 +67,7 @@ public class AdminCommandHandler {
         }
     }
 
-    private void handleIdleState(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleIdleState(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         if ("Выдать достижение".equalsIgnoreCase(text)) {
             session.setState(AwardState.AWAITING_USER_TAG);
             sendMessageWithKeyboard(bot, chatId, "Введите тег пользователя (@username):", createKeyboard(List.of(
@@ -76,7 +76,7 @@ public class AdminCommandHandler {
         }
     }
 
-    private void handleUserTagInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleUserTagInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         if (!text.startsWith("@")) {
             sendError(bot, chatId, "⚠️ Тег должен начинаться с @");
             return;
@@ -88,7 +88,7 @@ public class AdminCommandHandler {
         )));
     }
 
-    private void handleTitleInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleTitleInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         session.setTitle(text);
         session.setState(AwardState.AWAITING_DESCRIPTION);
         sendMessageWithKeyboard(bot, chatId, "Введите описание достижения:", createKeyboard(List.of(
@@ -96,7 +96,7 @@ public class AdminCommandHandler {
         )));
     }
 
-    private void handleDescriptionInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleDescriptionInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         session.setDescription(text);
         achievementService.awardCustomAchievement(
                 session.getUserTag(),
@@ -112,7 +112,7 @@ public class AdminCommandHandler {
         adminSessions.remove(chatId);
     }
 
-    private void cancelSession(ITKAchievementBot bot, Long chatId, AdminSession session) {
+    private void cancelSession(JavaCodeBot bot, Long chatId, AdminSession session) {
         adminSessions.remove(chatId);
         sendMessageWithKeyboard(bot, chatId, "Операция отменена", createKeyboard(List.of(
                 List.of("Выдать достижение"),
@@ -136,7 +136,7 @@ public class AdminCommandHandler {
         return keyboard;
     }
 
-    private void sendMessageWithKeyboard(ITKAchievementBot bot, Long chatId, String text, ReplyKeyboardMarkup keyboard) {
+    private void sendMessageWithKeyboard(JavaCodeBot bot, Long chatId, String text, ReplyKeyboardMarkup keyboard) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
@@ -149,7 +149,7 @@ public class AdminCommandHandler {
         }
     }
 
-    private void sendError(ITKAchievementBot bot, Long chatId, String errorText) {
+    private void sendError(JavaCodeBot bot, Long chatId, String errorText) {
         try {
             bot.execute(new SendMessage(chatId.toString(), errorText));
         } catch (TelegramApiException e) {
