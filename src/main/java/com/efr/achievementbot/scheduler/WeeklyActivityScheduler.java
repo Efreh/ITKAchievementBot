@@ -70,7 +70,7 @@ public class WeeklyActivityScheduler {
                 StringBuilder captionBuilder = new StringBuilder("Топ 5 заклинателей кода за неделю:\n");
                 for (int i = 0; i < topUsers.size(); i++) {
                     UserDB user = topUsers.get(i);
-                    captionBuilder.append(String.format("%d. %s - %d\n", i + 1, getMention(user), getWeeklyScore(user)));
+                    captionBuilder.append(String.format("%d. %s - %d очков восхождения\n", i + 1, getMention(user), getWeeklyScore(user)));
                 }
                 String caption = captionBuilder.toString();
 

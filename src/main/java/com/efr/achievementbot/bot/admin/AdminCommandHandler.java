@@ -24,27 +24,25 @@ public class AdminCommandHandler {
 
     private final AchievementService achievementService;
     private final BotProperties botProperties;
-    // Хранение админских сессий в памяти (ключ – chatId)
     private final Map<Long, AdminSession> adminSessions = new ConcurrentHashMap<>();
 
     /**
-     * Обработка админских команд из полученного обновления.
-     *
-     * @param update обновление из Telegram
-     * @param bot    ссылка на Telegram-бот для отправки сообщений
+     * Обрабатывает входящие админские команды.
      */
     public void handleAdminCommand(Update update, ITKAchievementBot bot) {
         Message message = update.getMessage();
         if (!message.hasText()) return;
+
         String text = message.getText();
         Long chatId = message.getChatId();
         Long senderId = message.getFrom().getId();
 
-        // Проверка, что отправитель – администратор
-        if (!isAdmin(senderId)) return;
+        if (!isAdmin(senderId)) {
+            log.warn("Попытка выполнения админской команды от неадминистратора, senderId: {}", senderId);
+            return;
+        }
 
-        // Если команда /start – выводим основное меню
-        if (text.equals("/start")) {
+        if ("/start".equals(text)) {
             sendMessageWithKeyboard(bot, chatId, "Админ-панель:", createKeyboard(List.of(
                     List.of("Выдать достижение"),
                     List.of("Отмена")
@@ -69,7 +67,6 @@ public class AdminCommandHandler {
         }
     }
 
-    // Обработка состояния ожидания команды "Выдать достижение"
     private void handleIdleState(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
         if ("Выдать достижение".equalsIgnoreCase(text)) {
             session.setState(AwardState.AWAITING_USER_TAG);
@@ -79,7 +76,6 @@ public class AdminCommandHandler {
         }
     }
 
-    // Обработка ввода тега пользователя
     private void handleUserTagInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
         if (!text.startsWith("@")) {
             sendError(bot, chatId, "⚠️ Тег должен начинаться с @");
@@ -92,7 +88,6 @@ public class AdminCommandHandler {
         )));
     }
 
-    // Обработка ввода названия достижения
     private void handleTitleInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
         session.setTitle(text);
         session.setState(AwardState.AWAITING_DESCRIPTION);
@@ -101,7 +96,6 @@ public class AdminCommandHandler {
         )));
     }
 
-    // Обработка ввода описания достижения и выдача достижения
     private void handleDescriptionInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
         session.setDescription(text);
         achievementService.awardCustomAchievement(
@@ -118,7 +112,6 @@ public class AdminCommandHandler {
         adminSessions.remove(chatId);
     }
 
-    // Отмена текущей сессии
     private void cancelSession(ITKAchievementBot bot, Long chatId, AdminSession session) {
         adminSessions.remove(chatId);
         sendMessageWithKeyboard(bot, chatId, "Операция отменена", createKeyboard(List.of(
@@ -127,12 +120,10 @@ public class AdminCommandHandler {
         )));
     }
 
-    // Метод создания клавиатуры из списка меток кнопок
     private ReplyKeyboardMarkup createKeyboard(java.util.List<java.util.List<String>> buttonLabels) {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         keyboard.setResizeKeyboard(true);
         keyboard.setOneTimeKeyboard(true);
-
         java.util.List<KeyboardRow> keyboardRows = new ArrayList<>();
         for (java.util.List<String> rowLabels : buttonLabels) {
             KeyboardRow row = new KeyboardRow();
@@ -145,7 +136,6 @@ public class AdminCommandHandler {
         return keyboard;
     }
 
-    // Отправка сообщения с клавиатурой
     private void sendMessageWithKeyboard(ITKAchievementBot bot, Long chatId, String text, ReplyKeyboardMarkup keyboard) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
@@ -159,7 +149,6 @@ public class AdminCommandHandler {
         }
     }
 
-    // Отправка текстового сообщения об ошибке
     private void sendError(ITKAchievementBot bot, Long chatId, String errorText) {
         try {
             bot.execute(new SendMessage(chatId.toString(), errorText));
@@ -168,7 +157,6 @@ public class AdminCommandHandler {
         }
     }
 
-    // Проверка, что отправитель – администратор
     private boolean isAdmin(Long userId) {
         return userId.toString().equals(botProperties.getAdministratorId());
     }

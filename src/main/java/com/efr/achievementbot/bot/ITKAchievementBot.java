@@ -12,8 +12,6 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import java.util.Optional;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,26 +24,27 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        if (!update.hasMessage()) return; // Игнорируем обновления без сообщений
+        if (!update.hasMessage()) {
+            log.debug("Пропуск обновления без сообщения.");
+            return;
+        }
 
         Message message = update.getMessage();
         Long chatId = message.getChatId();
         log.info("Получено сообщение из чата ID: {}", chatId);
 
         if (!isAllowedChat(chatId, message.getFrom().getId())) {
-            log.info("Чат {} не разрешен для обработки", chatId);
+            log.warn("Чат {} не разрешён для обработки, отправитель ID: {}", chatId, message.getFrom().getId());
             return;
         }
 
-        // Если сообщение от администратора – делегируем обработку админским командам
+        // Обработка команд админа
         if (isAdmin(message.getFrom().getId())) {
             adminCommandHandler.handleAdminCommand(update, this);
         }
 
-        // Обновляем статистику активности пользователя через специальный сервис
+        // Обновление статистики пользователя и проверка достижений
         UserDB user = userActivityService.updateUserActivity(message);
-
-        // Проверка достижений
         achievementService.checkAchievements(user, message, this);
     }
 
@@ -59,12 +58,16 @@ public class ITKAchievementBot extends TelegramLongPollingBot {
         return botProperties.getToken();
     }
 
-    // Проверка, является ли отправитель администратором
+    /**
+     * Проверяет, является ли отправитель администратором.
+     */
     private boolean isAdmin(Long userId) {
         return userId.toString().equals(botProperties.getAdministratorId());
     }
 
-    // Разрешаем либо группу из конфига, либо личные сообщения админа
+    /**
+     * Разрешает обработку сообщений либо для указанной группы, либо для личных сообщений админа.
+     */
     private boolean isAllowedChat(Long chatId, Long senderId) {
         return chatId.toString().equals(botProperties.getGroupId()) ||
                 (isAdmin(senderId) && chatId > 0);

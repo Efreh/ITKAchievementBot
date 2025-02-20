@@ -33,27 +33,32 @@ public class AchievementService {
     private final AchievementDefinitionService achievementDefinitionService;
     private final AchievementNotificationService notificationService;
 
+    /**
+     * Проверяет, соответствует ли активность пользователя условиям достижения.
+     * Если условие выполнено, выдаёт достижение и начисляет очки.
+     */
     public void checkAchievements(UserDB user, Message message, ITKAchievementBot bot) {
         log.info("Проверка достижений для пользователя {} (telegramId: {})", user.getUserName(), user.getTelegramId());
         List<Achievement> userAchievements = achievementRepository.findByUserWithDefinition(user);
         List<AchievementDefinition> definitions = achievementDefinitionService.getAllDefinitions();
 
         for (AchievementDefinition definition : definitions) {
-            boolean hasAchievement = userAchievements.stream()
+            boolean alreadyAwarded = userAchievements.stream()
                     .anyMatch(a -> a.getDefinition().getId().equals(definition.getId()));
-            if (hasAchievement) {
-                continue;
-            }
+            if (alreadyAwarded) continue;
+
             AchievementStrategy strategy = strategyFactory.getStrategy(definition.getType());
-            if (strategy == null) {
-                continue;
-            }
+            if (strategy == null) continue;
+
             if (strategy.isSatisfied(user, definition, message)) {
                 awardBaseAchievement(user, definition, message, bot);
             }
         }
     }
 
+    /**
+     * Выдаёт стандартное достижение и начисляет очки.
+     */
     private void awardBaseAchievement(UserDB user, AchievementDefinition definition, Message message, ITKAchievementBot bot) {
         log.info("Выдача достижения '{}' пользователю '{}'", definition.getTitle(), user.getUserName());
         File imageFile = imageGenerator.createAchievementImage(definition.getTitle(), definition.getDescription());
@@ -65,16 +70,15 @@ public class AchievementService {
         achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
 
-        // Начисляем очки за достижение
+        // Начисление очков за достижение
         int weight = definition.getWeight() != null ? definition.getWeight() : 1;
-        user.setAchievementScore((user.getAchievementScore() != null ? user.getAchievementScore() : 0) + weight);
-        user.setWeeklyAchievementScore((user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + weight);
-        user.setMonthlyAchievementScore((user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + weight);
-        userRepository.save(user);
-
+        addAchievementPoints(user, weight);
         log.info("Достижение '{}' успешно выдано пользователю '{}'", definition.getTitle(), user.getUserName());
     }
 
+    /**
+     * Выдаёт кастомное достижение для пользователя по указанному тегу.
+     */
     public void awardCustomAchievement(String userTag, String title, String description, Long chatId, ITKAchievementBot bot) {
         log.info("Выдача кастомного достижения '{}' для пользователя с тегом '{}'", title, userTag);
         UserDB user = userRepository.findByUserTagAndChatId(userTag, chatId);
@@ -89,7 +93,6 @@ public class AchievementService {
         definition.setTitle(title);
         definition.setDescription(description);
         definition.setType("custom");
-        // Задаём вес для кастомного достижения (например, 3 очка, можно регулировать по необходимости)
         definition.setWeight(3);
         definition = definitionRepository.save(definition);
 
@@ -99,12 +102,7 @@ public class AchievementService {
         achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
 
-        // Начисляем очки за достижение
-        int weight = definition.getWeight() != null ? definition.getWeight() : 1;
-        user.setAchievementScore((user.getAchievementScore() != null ? user.getAchievementScore() : 0) + weight);
-        user.setWeeklyAchievementScore((user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + weight);
-        user.setMonthlyAchievementScore((user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + weight);
-        userRepository.save(user);
+        addAchievementPoints(user, definition.getWeight());
 
         try {
             File image = imageGenerator.createAchievementImage(title, description);
@@ -113,5 +111,15 @@ public class AchievementService {
             log.error("Ошибка при выдаче кастомного достижения '{}'", title, e);
         }
         log.info("Кастомное достижение '{}' успешно выдано пользователю с тегом '{}'", title, userTag);
+    }
+
+    /**
+     * Начисляет очки достижения пользователю.
+     */
+    private void addAchievementPoints(UserDB user, int points) {
+        user.setAchievementScore((user.getAchievementScore() != null ? user.getAchievementScore() : 0) + points);
+        user.setWeeklyAchievementScore((user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + points);
+        user.setMonthlyAchievementScore((user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + points);
+        userRepository.save(user);
     }
 }

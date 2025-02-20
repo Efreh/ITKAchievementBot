@@ -3,7 +3,9 @@ package com.efr.achievementbot.bot.admin;
 import lombok.Getter;
 import lombok.Setter;
 
-// Класс для хранения состояния админской сессии
+/**
+ * Сессия для админских команд, позволяющая отслеживать состояние выдачи достижения.
+ */
 @Getter
 @Setter
 public class AdminSession {
