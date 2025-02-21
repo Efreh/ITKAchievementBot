@@ -71,14 +71,13 @@ public class GoblinService {
             InlineKeyboardMarkup inlineKeyboard = new InlineKeyboardMarkup();
             inlineKeyboard.setKeyboard(keyboard);
 
-            String spawnText = "В чате появился "+ selectedGoblin.getName() +"!\n" + selectedGoblin.getDescription();
+            String spawnText = "В чате появился " + selectedGoblin.getName() + "!\n" + selectedGoblin.getDescription();
 
             SendPhoto sendPhoto = new SendPhoto();
             sendPhoto.setChatId(chatId.toString());
-            if (threadId != null) {
-                sendPhoto.setMessageThreadId(threadId); // Отправляем в тред
-                log.info("Гоблин заспавнен в треде: {}", threadId);
-            }
+            sendPhoto.setMessageThreadId(threadId); // Отправляем в тред
+            log.info("Гоблин заспавнен в треде: {}", threadId);
+
             sendPhoto.setCaption(spawnText);
             sendPhoto.setPhoto(new InputFile(new File(goblinImagePath)));
             sendPhoto.setReplyMarkup(inlineKeyboard);

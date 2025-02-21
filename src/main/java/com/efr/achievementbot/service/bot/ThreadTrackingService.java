@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 @Service
 public class ThreadTrackingService {
 
+    private final int STANDARD_THREAD = 0;
+
     // Храним треды (ключ — threadId, значение — время последнего использования)
     private final Map<Integer, Instant> activeThreads = new ConcurrentHashMap<>();
 
@@ -28,8 +30,8 @@ public class ThreadTrackingService {
     public Integer getRandomThread() {
         List<Integer> threadList = new ArrayList<>(activeThreads.keySet());
         if (threadList.isEmpty()) {
-            log.warn("Нет доступных тредов!");
-            return null;
+            log.warn("Нет доступных тредов! Установлен стандартный тред = 0");
+            return STANDARD_THREAD;
         }
         return threadList.get(new Random().nextInt(threadList.size()));
     }
