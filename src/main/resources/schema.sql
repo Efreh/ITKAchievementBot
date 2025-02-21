@@ -8,3 +8,13 @@ CREATE TABLE IF NOT EXISTS achievement_definition (
     required_keyword VARCHAR(255),
     weight INT
 );
+
+CREATE TABLE IF NOT EXISTS goblin (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description VARCHAR(1000),
+    button_text VARCHAR(255),
+    success_message VARCHAR(1000),
+    failure_message VARCHAR(1000),
+    award_points INT
+);
