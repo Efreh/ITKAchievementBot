@@ -1,7 +1,7 @@
 package com.efr.achievementbot.bot.admin;
 
-import com.efr.achievementbot.bot.ITKAchievementBot;
-import com.efr.achievementbot.config.BotProperties;
+import com.efr.achievementbot.bot.JavaCodeBot;
+import com.efr.achievementbot.config.bot.BotProperties;
 import com.efr.achievementbot.service.achievement.AchievementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,27 +24,25 @@ public class AdminCommandHandler {
 
     private final AchievementService achievementService;
     private final BotProperties botProperties;
-    // Хранение админских сессий в памяти (ключ – chatId)
     private final Map<Long, AdminSession> adminSessions = new ConcurrentHashMap<>();
 
     /**
-     * Обработка админских команд из полученного обновления.
-     *
-     * @param update обновление из Telegram
-     * @param bot    ссылка на Telegram-бот для отправки сообщений
+     * Обрабатывает входящие админские команды.
      */
-    public void handleAdminCommand(Update update, ITKAchievementBot bot) {
+    public void handleAdminCommand(Update update, JavaCodeBot bot) {
         Message message = update.getMessage();
         if (!message.hasText()) return;
+
         String text = message.getText();
         Long chatId = message.getChatId();
         Long senderId = message.getFrom().getId();
 
-        // Проверка, что отправитель – администратор
-        if (!isAdmin(senderId)) return;
+        if (!isAdmin(senderId)) {
+            log.warn("Попытка выполнения админской команды от неадминистратора, senderId: {}", senderId);
+            return;
+        }
 
-        // Если команда /start – выводим основное меню
-        if (text.equals("/start")) {
+        if ("/start".equals(text)) {
             sendMessageWithKeyboard(bot, chatId, "Админ-панель:", createKeyboard(List.of(
                     List.of("Выдать достижение"),
                     List.of("Отмена")
@@ -69,8 +67,7 @@ public class AdminCommandHandler {
         }
     }
 
-    // Обработка состояния ожидания команды "Выдать достижение"
-    private void handleIdleState(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleIdleState(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         if ("Выдать достижение".equalsIgnoreCase(text)) {
             session.setState(AwardState.AWAITING_USER_TAG);
             sendMessageWithKeyboard(bot, chatId, "Введите тег пользователя (@username):", createKeyboard(List.of(
@@ -79,8 +76,7 @@ public class AdminCommandHandler {
         }
     }
 
-    // Обработка ввода тега пользователя
-    private void handleUserTagInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleUserTagInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         if (!text.startsWith("@")) {
             sendError(bot, chatId, "⚠️ Тег должен начинаться с @");
             return;
@@ -92,8 +88,7 @@ public class AdminCommandHandler {
         )));
     }
 
-    // Обработка ввода названия достижения
-    private void handleTitleInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleTitleInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         session.setTitle(text);
         session.setState(AwardState.AWAITING_DESCRIPTION);
         sendMessageWithKeyboard(bot, chatId, "Введите описание достижения:", createKeyboard(List.of(
@@ -101,8 +96,7 @@ public class AdminCommandHandler {
         )));
     }
 
-    // Обработка ввода описания достижения и выдача достижения
-    private void handleDescriptionInput(ITKAchievementBot bot, String text, Long chatId, AdminSession session) {
+    private void handleDescriptionInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         session.setDescription(text);
         achievementService.awardCustomAchievement(
                 session.getUserTag(),
@@ -118,8 +112,7 @@ public class AdminCommandHandler {
         adminSessions.remove(chatId);
     }
 
-    // Отмена текущей сессии
-    private void cancelSession(ITKAchievementBot bot, Long chatId, AdminSession session) {
+    private void cancelSession(JavaCodeBot bot, Long chatId, AdminSession session) {
         adminSessions.remove(chatId);
         sendMessageWithKeyboard(bot, chatId, "Операция отменена", createKeyboard(List.of(
                 List.of("Выдать достижение"),
@@ -127,12 +120,10 @@ public class AdminCommandHandler {
         )));
     }
 
-    // Метод создания клавиатуры из списка меток кнопок
     private ReplyKeyboardMarkup createKeyboard(java.util.List<java.util.List<String>> buttonLabels) {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         keyboard.setResizeKeyboard(true);
         keyboard.setOneTimeKeyboard(true);
-
         java.util.List<KeyboardRow> keyboardRows = new ArrayList<>();
         for (java.util.List<String> rowLabels : buttonLabels) {
             KeyboardRow row = new KeyboardRow();
@@ -145,8 +136,7 @@ public class AdminCommandHandler {
         return keyboard;
     }
 
-    // Отправка сообщения с клавиатурой
-    private void sendMessageWithKeyboard(ITKAchievementBot bot, Long chatId, String text, ReplyKeyboardMarkup keyboard) {
+    private void sendMessageWithKeyboard(JavaCodeBot bot, Long chatId, String text, ReplyKeyboardMarkup keyboard) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId.toString());
         message.setText(text);
@@ -159,8 +149,7 @@ public class AdminCommandHandler {
         }
     }
 
-    // Отправка текстового сообщения об ошибке
-    private void sendError(ITKAchievementBot bot, Long chatId, String errorText) {
+    private void sendError(JavaCodeBot bot, Long chatId, String errorText) {
         try {
             bot.execute(new SendMessage(chatId.toString(), errorText));
         } catch (TelegramApiException e) {
@@ -168,7 +157,6 @@ public class AdminCommandHandler {
         }
     }
 
-    // Проверка, что отправитель – администратор
     private boolean isAdmin(Long userId) {
         return userId.toString().equals(botProperties.getAdministratorId());
     }

@@ -1,4 +1,4 @@
-package com.efr.achievementbot.config;
+package com.efr.achievementbot.config.bot;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,4 +1,4 @@
-package com.efr.achievementbot.config;
+package com.efr.achievementbot.config.image;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import java.awt.Point;
 
 @Getter
 @Setter
-public class TextDrawConfig {
+public class AchievementImageTextDrawConfig {
     /**
      * Имя шрифта (например, "Arial").
      */

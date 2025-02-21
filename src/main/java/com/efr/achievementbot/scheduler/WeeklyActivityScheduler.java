@@ -1,7 +1,7 @@
 package com.efr.achievementbot.scheduler;
 
-import com.efr.achievementbot.bot.ITKAchievementBot;
-import com.efr.achievementbot.config.BotProperties;
+import com.efr.achievementbot.bot.JavaCodeBot;
+import com.efr.achievementbot.config.bot.BotProperties;
 import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.repository.user.UserRepository;
 import com.efr.achievementbot.service.achievement.AchievementService;
@@ -15,7 +15,6 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +27,7 @@ public class WeeklyActivityScheduler {
 
     private final UserRepository userRepository;
     private final AchievementService achievementService;
-    private final ITKAchievementBot bot;
+    private final JavaCodeBot bot;
     private final AchievementImageGenerator imageGenerator;
     private final BotProperties botProperties;
 
@@ -70,7 +69,7 @@ public class WeeklyActivityScheduler {
                 StringBuilder captionBuilder = new StringBuilder("Топ 5 заклинателей кода за неделю:\n");
                 for (int i = 0; i < topUsers.size(); i++) {
                     UserDB user = topUsers.get(i);
-                    captionBuilder.append(String.format("%d. %s - %d\n", i + 1, getMention(user), getWeeklyScore(user)));
+                    captionBuilder.append(String.format("%d. %s - %d очков восхождения\n", i + 1, getMention(user), getWeeklyScore(user)));
                 }
                 String caption = captionBuilder.toString();
 

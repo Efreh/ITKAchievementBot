@@ -1,4 +1,4 @@
-package com.efr.achievementbot.config;
+package com.efr.achievementbot.config.image;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,9 +11,9 @@ import java.awt.Color;
 @Setter
 @Configuration
 @ConfigurationProperties(prefix = "achievement.image")
-public class ImageConfig {
+public class AchievementImageConfig {
     /**
-     * Путь к шаблону изображения.
+     * Путь к шаблону изображения достижения.
      */
     private String templatePath = "images/achievement_image_template_1.jpg";
 
@@ -23,18 +23,15 @@ public class ImageConfig {
     private String textColor = "#FFFFFF";
 
     /**
-     * Настройки для отрисовки заголовка.
+     * Настройки для отрисовки заголовка достижения.
      */
-    private TextDrawConfig title = new TextDrawConfig();
+    private AchievementImageTextDrawConfig title = new AchievementImageTextDrawConfig();
 
     /**
-     * Настройки для отрисовки описания.
+     * Настройки для отрисовки описания достижения.
      */
-    private TextDrawConfig description = new TextDrawConfig();
+    private AchievementImageTextDrawConfig description = new AchievementImageTextDrawConfig();
 
-    /**
-     * Преобразует строку HEX в объект Color.
-     */
     public Color getTextColor() {
         return Color.decode(textColor);
     }

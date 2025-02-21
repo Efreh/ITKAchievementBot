@@ -3,11 +3,17 @@ package com.efr.achievementbot.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Data
+/**
+ * Сущность пользователя Telegram для хранения статистики и достижений.
+ */
+@Getter
+@Setter
 @Entity(name = "users")
 @EqualsAndHashCode(exclude = {"achievements"})
 public class UserDB {
@@ -16,18 +22,20 @@ public class UserDB {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String userTag;  // Формат @username
+    // Telegram username (с тегом @) может отсутствовать, поэтому используем отдельное поле для отображаемого имени
+    private String userTag;
     private Long telegramId;
-    private Long chatId;     // ID чата
-    private String userName; // Имя пользователя
+    private Long chatId;
 
+    // Отображаемое имя, которое может быть заполнено из профиля (имя или ник)
+    private String userName;
     private Integer messageCount = 0;
     private Integer weeklyMessageCount = 0;
     private Integer reactionCount = 0;
     private Integer mediaCount = 0;
     private Integer stickerCount = 0;
 
-    // Новые поля для очков достижений
+    // Поля для очков достижений
     private Integer achievementScore = 0;
     private Integer weeklyAchievementScore = 0;
     private Integer monthlyAchievementScore = 0;
