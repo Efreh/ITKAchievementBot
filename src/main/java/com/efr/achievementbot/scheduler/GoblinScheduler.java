@@ -65,6 +65,6 @@ public class GoblinScheduler {
             Long chatId = Long.parseLong(botProperties.getGroupId());
             goblinService.spawnGoblin(chatId);
             log.info("Спавн гоблина запущен по тестовому расписанию (30 секунд)");
-        }, 300000); // 30 секунд = 30000 мс
+        }, 60000); // 30 секунд = 30000 мс
     }
 }
