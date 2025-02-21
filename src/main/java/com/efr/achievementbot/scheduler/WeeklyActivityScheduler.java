@@ -35,8 +35,8 @@ public class WeeklyActivityScheduler {
      * Каждую неделю (или для проверки каждые 30 секунд) собирает топ-5 активных пользователей за неделю
      * и отправляет дашборд в группу, если есть активность.
      */
-    //    @Scheduled(cron = "0 0 0 ? * SUN")
-    @Scheduled(fixedDelay = 30000) // Для тестирования – каждые 30 секунд
+    @Scheduled(cron = "0 0 0 ? * SUN")
+//    @Scheduled(fixedDelay = 30000) // Для тестирования – каждые 30 секунд
     public void awardWeeklyActivityAchievement() {
         log.info("Начало формирования топ-5 активности за неделю.");
 

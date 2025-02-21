@@ -4,6 +4,8 @@ import com.efr.achievementbot.bot.admin.AdminCommandHandler;
 import com.efr.achievementbot.config.bot.BotProperties;
 import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.service.achievement.AchievementService;
+import com.efr.achievementbot.service.bot.ThreadTrackingService;
+import com.efr.achievementbot.service.goblin.GoblinService;
 import com.efr.achievementbot.service.user.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +23,16 @@ public class JavaCodeBot extends TelegramLongPollingBot {
     private final BotProperties botProperties;
     private final AchievementService achievementService;
     private final AdminCommandHandler adminCommandHandler;
+    private final GoblinService goblinService;
+    private final ThreadTrackingService threadTrackingService;
 
     @Override
     public void onUpdateReceived(Update update) {
+        if (update.hasCallbackQuery()) {
+            goblinService.handleGoblinCatch(update.getCallbackQuery());
+            return;
+        }
+
         if (!update.hasMessage()) {
             log.debug("Пропуск обновления без сообщения.");
             return;
@@ -32,6 +41,11 @@ public class JavaCodeBot extends TelegramLongPollingBot {
         Message message = update.getMessage();
         Long chatId = message.getChatId();
         log.info("Получено сообщение из чата ID: {}", chatId);
+
+        Integer threadId = message.getMessageThreadId();
+        if (threadId != null) {
+            threadTrackingService.registerThread(threadId);
+        }
 
         if (!isAllowedChat(chatId, message.getFrom().getId())) {
             log.warn("Чат {} не разрешён для обработки, отправитель ID: {}", chatId, message.getFrom().getId());
