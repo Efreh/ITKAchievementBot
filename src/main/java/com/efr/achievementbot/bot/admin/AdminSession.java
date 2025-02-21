@@ -11,6 +11,8 @@ import lombok.Setter;
 public class AdminSession {
     private AwardState state = AwardState.IDLE;
     private String userTag;
+    private String name;
     private String title;
     private String description;
+    private Integer weight;  // <-- новое поле для веса достижения
 }

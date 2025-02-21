@@ -14,7 +14,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -26,41 +28,53 @@ public class AdminCommandHandler {
     private final BotProperties botProperties;
     private final Map<Long, AdminSession> adminSessions = new ConcurrentHashMap<>();
 
-    /**
-     * Обрабатывает входящие админские команды.
-     */
     public void handleAdminCommand(Update update, JavaCodeBot bot) {
         Message message = update.getMessage();
-        if (!message.hasText()) return;
+        if (!message.hasText()) {
+            return;
+        }
 
         String text = message.getText();
         Long chatId = message.getChatId();
         Long senderId = message.getFrom().getId();
 
+        // Проверяем, является ли отправитель администратором
         if (!isAdmin(senderId)) {
             log.warn("Попытка выполнения админской команды от неадминистратора, senderId: {}", senderId);
             return;
         }
 
+        // Показываем меню при команде /start
         if ("/start".equals(text)) {
-            sendMessageWithKeyboard(bot, chatId, "Админ-панель:", createKeyboard(List.of(
-                    List.of("Выдать достижение"),
-                    List.of("Отмена")
-            )));
+            sendMessageWithKeyboard(
+                    bot,
+                    chatId,
+                    "Админ-панель:",
+                    createKeyboard(List.of(
+                            List.of("Выдать достижение"),
+                            List.of("Отмена")
+                    ))
+            );
             return;
         }
 
+        // Текущая сессия или новая
         AdminSession session = adminSessions.getOrDefault(chatId, new AdminSession());
         try {
             if ("Отмена".equalsIgnoreCase(text)) {
                 cancelSession(bot, chatId, session);
                 return;
             }
+
+            // Обработка состояний
             switch (session.getState()) {
                 case IDLE -> handleIdleState(bot, text, chatId, session);
                 case AWAITING_USER_TAG -> handleUserTagInput(bot, text, chatId, session);
+                case AWAITING_NAME -> handleNameInput(bot, text, chatId, session);
                 case AWAITING_TITLE -> handleTitleInput(bot, text, chatId, session);
                 case AWAITING_DESCRIPTION -> handleDescriptionInput(bot, text, chatId, session);
+                case AWAITING_WEIGHT -> handleWeightInput(bot, text, chatId, session);
+                default -> log.warn("Неизвестное состояние: {}", session.getState());
             }
         } finally {
             adminSessions.put(chatId, session);
@@ -70,9 +84,14 @@ public class AdminCommandHandler {
     private void handleIdleState(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         if ("Выдать достижение".equalsIgnoreCase(text)) {
             session.setState(AwardState.AWAITING_USER_TAG);
-            sendMessageWithKeyboard(bot, chatId, "Введите тег пользователя (@username):", createKeyboard(List.of(
-                    List.of("Отмена")
-            )));
+            sendMessageWithKeyboard(
+                    bot,
+                    chatId,
+                    "Введите тег пользователя (@username):",
+                    createKeyboard(List.of(
+                            List.of("Отмена")
+                    ))
+            );
         }
     }
 
@@ -82,50 +101,103 @@ public class AdminCommandHandler {
             return;
         }
         session.setUserTag(text);
+        session.setState(AwardState.AWAITING_NAME);
+        sendMessageWithKeyboard(
+                bot,
+                chatId,
+                "Введите техническое имя достижения (латиницей, без пробелов):",
+                createKeyboard(List.of(List.of("Отмена")))
+        );
+    }
+
+    private void handleNameInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
+        session.setName(text);
         session.setState(AwardState.AWAITING_TITLE);
-        sendMessageWithKeyboard(bot, chatId, "Введите название достижения:", createKeyboard(List.of(
-                List.of("Отмена")
-        )));
+        sendMessageWithKeyboard(
+                bot,
+                chatId,
+                "Введите отображаемый заголовок достижения:",
+                createKeyboard(List.of(List.of("Отмена")))
+        );
     }
 
     private void handleTitleInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         session.setTitle(text);
         session.setState(AwardState.AWAITING_DESCRIPTION);
-        sendMessageWithKeyboard(bot, chatId, "Введите описание достижения:", createKeyboard(List.of(
-                List.of("Далее", "Отмена")
-        )));
+        sendMessageWithKeyboard(
+                bot,
+                chatId,
+                "Введите описание достижения:",
+                createKeyboard(List.of(List.of("Далее", "Отмена")))
+        );
     }
 
     private void handleDescriptionInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
         session.setDescription(text);
+        session.setState(AwardState.AWAITING_WEIGHT);
+        sendMessageWithKeyboard(
+                bot,
+                chatId,
+                "Введите вес достижения (целое число, напр. 3 или 5):",
+                createKeyboard(List.of(List.of("Отмена")))
+        );
+    }
+
+    private void handleWeightInput(JavaCodeBot bot, String text, Long chatId, AdminSession session) {
+        int weight;
+        try {
+            weight = Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            sendError(bot, chatId, "⚠️ Некорректное число. Попробуйте ещё раз или нажмите 'Отмена'.");
+            return;
+        }
+
+        session.setWeight(weight);
+
+        // Выдаём кастомное достижение
         achievementService.awardCustomAchievement(
                 session.getUserTag(),
+                session.getName(),
                 session.getTitle(),
                 session.getDescription(),
+                session.getWeight(),
                 Long.parseLong(botProperties.getGroupId()),
                 bot
         );
-        sendMessageWithKeyboard(bot, chatId, "Достижение успешно выдано!", createKeyboard(List.of(
-                List.of("Выдать достижение"),
-                List.of("Отмена")
-        )));
+
+        sendMessageWithKeyboard(
+                bot,
+                chatId,
+                "Достижение успешно выдано!",
+                createKeyboard(List.of(
+                        List.of("Выдать достижение"),
+                        List.of("Отмена")
+                ))
+        );
+
         adminSessions.remove(chatId);
     }
 
     private void cancelSession(JavaCodeBot bot, Long chatId, AdminSession session) {
         adminSessions.remove(chatId);
-        sendMessageWithKeyboard(bot, chatId, "Операция отменена", createKeyboard(List.of(
-                List.of("Выдать достижение"),
-                List.of("Отмена")
-        )));
+        sendMessageWithKeyboard(
+                bot,
+                chatId,
+                "Операция отменена",
+                createKeyboard(List.of(
+                        List.of("Выдать достижение"),
+                        List.of("Отмена")
+                ))
+        );
     }
 
-    private ReplyKeyboardMarkup createKeyboard(java.util.List<java.util.List<String>> buttonLabels) {
+    private ReplyKeyboardMarkup createKeyboard(List<List<String>> buttonLabels) {
         ReplyKeyboardMarkup keyboard = new ReplyKeyboardMarkup();
         keyboard.setResizeKeyboard(true);
         keyboard.setOneTimeKeyboard(true);
-        java.util.List<KeyboardRow> keyboardRows = new ArrayList<>();
-        for (java.util.List<String> rowLabels : buttonLabels) {
+
+        List<KeyboardRow> keyboardRows = new ArrayList<>();
+        for (List<String> rowLabels : buttonLabels) {
             KeyboardRow row = new KeyboardRow();
             for (String label : rowLabels) {
                 row.add(new KeyboardButton(label));

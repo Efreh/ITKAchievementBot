@@ -34,8 +34,8 @@ public class AchievementService {
     private final AchievementNotificationService notificationService;
 
     /**
-     * Проверяет, соответствует ли активность пользователя условиям достижения.
-     * Если условие выполнено, выдаёт достижение и начисляет очки.
+     * Проверяет достижения для пользователя при поступлении сообщения:
+     * если условия какого-то достижения выполнены впервые, оно ему выдаётся.
      */
     public void checkAchievements(UserDB user, Message message, JavaCodeBot bot) {
         log.info("Проверка достижений для пользователя {} (telegramId: {})", user.getUserName(), user.getTelegramId());
@@ -45,10 +45,14 @@ public class AchievementService {
         for (AchievementDefinition definition : definitions) {
             boolean alreadyAwarded = userAchievements.stream()
                     .anyMatch(a -> a.getDefinition().getId().equals(definition.getId()));
-            if (alreadyAwarded) continue;
+            if (alreadyAwarded) {
+                continue;
+            }
 
             AchievementStrategy strategy = strategyFactory.getStrategy(definition.getType());
-            if (strategy == null) continue;
+            if (strategy == null) {
+                continue;
+            }
 
             if (strategy.isSatisfied(user, definition, message)) {
                 awardBaseAchievement(user, definition, message, bot);
@@ -57,9 +61,10 @@ public class AchievementService {
     }
 
     /**
-     * Выдаёт стандартное достижение и начисляет очки.
+     * Выдача стандартного (не кастомного) достижения.
      */
-    private void awardBaseAchievement(UserDB user, AchievementDefinition definition, Message message, JavaCodeBot bot) {
+    private void awardBaseAchievement(UserDB user, AchievementDefinition definition,
+                                      Message message, JavaCodeBot bot) {
         log.info("Выдача достижения '{}' пользователю '{}'", definition.getTitle(), user.getUserName());
         File imageFile = imageGenerator.createAchievementImage(definition.getTitle(), definition.getDescription());
         notificationService.sendAchievementNotification(user, message, bot, imageFile, definition.getTitle());
@@ -70,17 +75,22 @@ public class AchievementService {
         achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
 
-        // Начисление очков за достижение
         int weight = definition.getWeight() != null ? definition.getWeight() : 1;
         addAchievementPoints(user, weight);
+
         log.info("Достижение '{}' успешно выдано пользователю '{}'", definition.getTitle(), user.getUserName());
     }
 
     /**
-     * Выдаёт кастомное достижение для пользователя по указанному тегу.
+     * Выдаёт кастомное достижение для пользователя по тегу.
+     * Поля: name, title, description, weight.
      */
-    public void awardCustomAchievement(String userTag, String title, String description, Long chatId, JavaCodeBot bot) {
-        log.info("Выдача кастомного достижения '{}' для пользователя с тегом '{}'", title, userTag);
+    public void awardCustomAchievement(String userTag, String name, String title,
+                                       String description, int weight, Long chatId, JavaCodeBot bot) {
+        log.info("Выдача кастомного достижения '{}', userTag: '{}', name: '{}', weight: {}",
+                title, userTag, name, weight);
+
+        // Находим или создаём UserDB
         UserDB user = userRepository.findByUserTagAndChatId(userTag, chatId);
         if (user == null) {
             user = new UserDB();
@@ -89,37 +99,49 @@ public class AchievementService {
             user = userRepository.save(user);
         }
 
+        // Создаём новое AchievementDefinition
         AchievementDefinition definition = new AchievementDefinition();
+        definition.setName(name);
         definition.setTitle(title);
         definition.setDescription(description);
         definition.setType("custom");
-        definition.setWeight(3);
+        definition.setWeight(weight);
         definition = definitionRepository.save(definition);
 
+        // Создаём новое Achievement
         Achievement achievement = new Achievement();
         achievement.setUser(user);
         achievement.setDefinition(definition);
         achievement.setAwardedAt(LocalDateTime.now());
         achievementRepository.save(achievement);
 
-        addAchievementPoints(user, definition.getWeight());
+        // Начисляем очки
+        addAchievementPoints(user, weight);
 
+        // Отправляем уведомление и изображение (при желании)
         try {
             File image = imageGenerator.createAchievementImage(title, description);
             notificationService.sendCustomAchievementNotification(userTag, chatId, bot, image, title);
         } catch (Exception e) {
             log.error("Ошибка при выдаче кастомного достижения '{}'", title, e);
         }
+
         log.info("Кастомное достижение '{}' успешно выдано пользователю с тегом '{}'", title, userTag);
     }
 
     /**
-     * Начисляет очки достижения пользователю.
+     * Начисление очков за получение достижения (общий, недельный и месячный счёт).
      */
     private void addAchievementPoints(UserDB user, int points) {
-        user.setAchievementScore((user.getAchievementScore() != null ? user.getAchievementScore() : 0) + points);
-        user.setWeeklyAchievementScore((user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + points);
-        user.setMonthlyAchievementScore((user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + points);
+        user.setAchievementScore(
+                (user.getAchievementScore() != null ? user.getAchievementScore() : 0) + points
+        );
+        user.setWeeklyAchievementScore(
+                (user.getWeeklyAchievementScore() != null ? user.getWeeklyAchievementScore() : 0) + points
+        );
+        user.setMonthlyAchievementScore(
+                (user.getMonthlyAchievementScore() != null ? user.getMonthlyAchievementScore() : 0) + points
+        );
         userRepository.save(user);
     }
 }
