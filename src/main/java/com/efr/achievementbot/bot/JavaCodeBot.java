@@ -1,7 +1,7 @@
 package com.efr.achievementbot.bot;
 
 import com.efr.achievementbot.bot.admin.AdminCommandHandler;
-import com.efr.achievementbot.config.BotProperties;
+import com.efr.achievementbot.config.bot.BotProperties;
 import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.service.achievement.AchievementService;
 import com.efr.achievementbot.service.user.UserActivityService;

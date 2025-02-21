@@ -23,42 +23,21 @@ public class UserDB {
     private Long id;
 
     // Telegram username (с тегом @) может отсутствовать, поэтому используем отдельное поле для отображаемого имени
-    @Column
     private String userTag;
-
-    @Column(nullable = false)
     private Long telegramId;
-
-    @Column(nullable = false)
     private Long chatId;
 
     // Отображаемое имя, которое может быть заполнено из профиля (имя или ник)
-    @Column
     private String userName;
-
-    @Column
     private Integer messageCount = 0;
-
-    @Column
     private Integer weeklyMessageCount = 0;
-
-    @Column
     private Integer reactionCount = 0;
-
-    @Column
     private Integer mediaCount = 0;
-
-    @Column
     private Integer stickerCount = 0;
 
     // Поля для очков достижений
-    @Column
     private Integer achievementScore = 0;
-
-    @Column
     private Integer weeklyAchievementScore = 0;
-
-    @Column
     private Integer monthlyAchievementScore = 0;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

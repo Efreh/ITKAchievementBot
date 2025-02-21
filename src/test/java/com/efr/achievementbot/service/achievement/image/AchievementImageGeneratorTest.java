@@ -1,7 +1,8 @@
 package com.efr.achievementbot.service.achievement.image;
 
-import com.efr.achievementbot.config.ImageConfig;
-import com.efr.achievementbot.config.TextDrawConfig;
+import com.efr.achievementbot.config.image.AchievementImageConfig;
+import com.efr.achievementbot.config.image.AchievementImageTextDrawConfig;
+import com.efr.achievementbot.config.image.DashboardImageConfig;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
@@ -11,30 +12,31 @@ public class AchievementImageGeneratorTest {
     @Test
     public void testCreateAchievementImage() throws Exception {
         // Настраиваем dummy-конфигурацию для генератора изображений
-        ImageConfig imageConfig = new ImageConfig();
-        imageConfig.setTemplatePath("images/achievement_image_template_1.jpg");
-        imageConfig.setTextColor("#FFFFFF");
+        AchievementImageConfig achievementImageConfig = new AchievementImageConfig();
+        DashboardImageConfig dashboardImageConfig = new DashboardImageConfig();
+        achievementImageConfig.setTemplatePath("images/achievement_image_template_1.jpg");
+        achievementImageConfig.setTextColor("#FFFFFF");
 
-        TextDrawConfig titleConfig = new TextDrawConfig();
+        AchievementImageTextDrawConfig titleConfig = new AchievementImageTextDrawConfig();
         titleConfig.setFontName("Arial");
         titleConfig.setFontStyle(1); // Font.BOLD
         titleConfig.setFontSize(35);
         titleConfig.setPosX(512);
         titleConfig.setPosY(560);
         titleConfig.setMaxLineLength(35);
-        imageConfig.setTitle(titleConfig);
+        achievementImageConfig.setTitle(titleConfig);
 
-        TextDrawConfig descConfig = new TextDrawConfig();
+        AchievementImageTextDrawConfig descConfig = new AchievementImageTextDrawConfig();
         descConfig.setFontName("Arial");
         descConfig.setFontStyle(0); // Font.PLAIN
         descConfig.setFontSize(23);
         descConfig.setPosX(512);
         descConfig.setPosY(600);
         descConfig.setMaxLineLength(35);
-        imageConfig.setDescription(descConfig);
+        achievementImageConfig.setDescription(descConfig);
 
         // Создаем экземпляр генератора изображений с конфигурацией
-        AchievementImageGenerator generator = new AchievementImageGenerator(imageConfig);
+        AchievementImageGenerator generator = new AchievementImageGenerator(achievementImageConfig,dashboardImageConfig);
 
         // Генерируем изображение достижения
         File imageFile = generator.createAchievementImage("Test Title", "Test description that is sufficiently long to require line breaks");

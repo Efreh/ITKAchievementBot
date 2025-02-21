@@ -1,7 +1,7 @@
 package com.efr.achievementbot.bot.admin;
 
 import com.efr.achievementbot.bot.JavaCodeBot;
-import com.efr.achievementbot.config.BotProperties;
+import com.efr.achievementbot.config.bot.BotProperties;
 import com.efr.achievementbot.service.achievement.AchievementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
