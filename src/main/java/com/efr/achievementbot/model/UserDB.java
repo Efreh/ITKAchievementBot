@@ -1,11 +1,11 @@
 package com.efr.achievementbot.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,6 +39,8 @@ public class UserDB {
     private Integer achievementScore = 0;
     private Integer weeklyAchievementScore = 0;
     private Integer monthlyAchievementScore = 0;
+
+    private LocalDateTime lastActivity;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Achievement> achievements = new HashSet<>();

@@ -4,6 +4,8 @@ import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.repository.user.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -18,5 +20,8 @@ public class UserService {
     }
     public UserDB findByTelegramIdAndChatId(Long telegramId, Long chatId) {
         return userRepository.findByTelegramIdAndChatId(telegramId, chatId);
+    }
+    public int deleteInactiveBefore(LocalDateTime cutoff){
+        return userRepository.deleteInactiveBefore(cutoff);
     }
 }
