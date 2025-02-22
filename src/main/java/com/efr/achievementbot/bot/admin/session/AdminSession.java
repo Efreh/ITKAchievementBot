@@ -5,6 +5,9 @@ import com.efr.achievementbot.model.Goblin;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Класс, представляющий состояние диалога с администратором (в конкретном чате).
  * Хранит текущее состояние (AdminMenuState) и "черновые" данные для создания/редактирования.
@@ -13,38 +16,38 @@ import lombok.Setter;
 @Setter
 public class AdminSession {
 
+    /**
+     * Хранилище сессий по chatId.
+     */
+    private static final Map<Long, AdminSession> SESSIONS = new ConcurrentHashMap<>();
+
+    /**
+     * Возвращает (или создаёт) сессию для данного chatId.
+     */
+    public static AdminSession getSession(Long chatId) {
+        return SESSIONS.computeIfAbsent(chatId, k -> new AdminSession());
+    }
+
+    // По умолчанию состояние IDLE (или поменяйте на MAIN_MENU, если хотите)
     private AdminMenuState state = AdminMenuState.IDLE;
 
-    /**
-     * Промежуточный объект базового достижения, который администратор создаёт
-     * или редактирует (title, description, type и т.д.).
-     */
+    // Промежуточный объект базового достижения
     private AchievementDefinition tempAchievementDefinition;
-
-    /**
-     * ID достижения, которое мы сейчас редактируем/просматриваем, чтобы не искать его заново.
-     */
+    // ID достижения, которое мы редактируем
     private Long editingAchievementId;
 
-    /**
-     * Поля для создания/выдачи КАСТОМНОГО достижения (если вы решите делать это отдельно).
-     */
+    // Поля для КАСТОМНОГО достижения
     private String customUserTag;
     private String customName;
     private String customTitle;
     private String customDescription;
     private Integer customWeight;
 
-    /**
-     * Промежуточный объект для гоблина, который администратор создаёт или редактирует.
-     */
+    // Промежуточный объект для гоблина, который создаём/редактируем
     private Goblin tempGoblin;
-
-    /**
-     * ID гоблина, который редактируется или просматривается.
-     */
+    // ID гоблина, который редактируем/просматриваем
     private Long editingGoblinId;
 
-    // Пример поля для "пагинации" — если захотите разбивать списки на страницы
+    // Пример для пагинации
     private int currentPage = 0;
 }

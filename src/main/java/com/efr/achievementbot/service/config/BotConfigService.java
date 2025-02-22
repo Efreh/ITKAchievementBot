@@ -21,7 +21,7 @@ public class BotConfigService {
 
         // Проставляем дефолты, если поля null
         if (cfg.getCooldown() == null) {
-            cfg.setCooldown(300); // 300 секунд
+            cfg.setCooldown(8); // 8 часов
         }
         if (cfg.getGoblinEnabled() == null) {
             cfg.setGoblinEnabled(true);
