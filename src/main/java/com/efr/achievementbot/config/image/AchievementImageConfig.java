@@ -18,11 +18,6 @@ public class AchievementImageConfig {
     private String templatePath = "images/achievement_image_template_1.jpg";
 
     /**
-     * Цвет текста в формате HEX (например, "#FFFFFF" для белого).
-     */
-    private String textColor = "#FFFFFF";
-
-    /**
      * Настройки для отрисовки заголовка достижения.
      */
     private AchievementImageTextDrawConfig title = new AchievementImageTextDrawConfig();
@@ -31,8 +26,4 @@ public class AchievementImageConfig {
      * Настройки для отрисовки описания достижения.
      */
     private AchievementImageTextDrawConfig description = new AchievementImageTextDrawConfig();
-
-    public Color getTextColor() {
-        return Color.decode(textColor);
-    }
 }

@@ -18,11 +18,6 @@ public class DashboardImageConfig {
     private String templatePath = "images/dashboard_image_template_1.jpg";
 
     /**
-     * Цвет текста для дашборда (по умолчанию черный).
-     */
-    private String textColor = "#000000";
-
-    /**
      * Конфигурация для заголовка дашборда.
      */
     private DashboardImageTextDrawConfig title = new DashboardImageTextDrawConfig();
@@ -36,8 +31,4 @@ public class DashboardImageConfig {
      * Начальная координата Y для вывода списка пользователей.
      */
     private int listStartY = 400;
-
-    public Color getTextColor() {
-        return Color.decode(textColor);
-    }
 }

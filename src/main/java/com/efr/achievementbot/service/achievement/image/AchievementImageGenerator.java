@@ -3,8 +3,10 @@ package com.efr.achievementbot.service.achievement.image;
 import com.efr.achievementbot.config.image.AchievementImageConfig;
 import com.efr.achievementbot.config.image.DashboardImageConfig;
 import com.efr.achievementbot.model.UserDB;
+import com.efr.achievementbot.service.config.BotConfigService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -13,17 +15,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
-@Component
+@Service
+@RequiredArgsConstructor
 public class AchievementImageGenerator {
 
     private final AchievementImageConfig achievementImageConfig;
     private final DashboardImageConfig dashboardImageConfig;
-
-    public AchievementImageGenerator(AchievementImageConfig achievementImageConfig,
-                                     DashboardImageConfig dashboardImageConfig) {
-        this.achievementImageConfig = achievementImageConfig;
-        this.dashboardImageConfig = dashboardImageConfig;
-    }
+    private final BotConfigService botConfigService;
 
     /**
      * Генерирует изображение достижения с использованием настроек из AchievementImageConfig.
@@ -34,7 +32,7 @@ public class AchievementImageGenerator {
             BufferedImage image = ImageIO.read(templateStream);
             Graphics2D g = image.createGraphics();
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.setColor(achievementImageConfig.getTextColor());
+            g.setColor(Color.decode(botConfigService.getConfig().getAchievementTextColor()));
             drawCenteredString(g, title, achievementImageConfig.getTitle().getPosition(), achievementImageConfig.getTitle().getFont());
             List<String> descriptionLines = splitTextIntoLines(description, achievementImageConfig.getDescription().getMaxLineLength());
             int lineHeight = g.getFontMetrics(achievementImageConfig.getDescription().getFont()).getHeight();
@@ -62,7 +60,7 @@ public class AchievementImageGenerator {
             BufferedImage image = ImageIO.read(templateStream);
             Graphics2D g = image.createGraphics();
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-            g.setColor(dashboardImageConfig.getTextColor());
+            g.setColor(Color.decode(botConfigService.getConfig().getDashboardTextColor()));
 
             // Рисуем заголовок дашборда
             drawCenteredString(g, dashboardImageConfig.getTitle().getText(),
