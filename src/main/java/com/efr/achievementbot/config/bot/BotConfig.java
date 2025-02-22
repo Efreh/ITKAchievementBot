@@ -1,6 +1,6 @@
-package com.efr.achievementbot.config;
+package com.efr.achievementbot.config.bot;
 
-import com.efr.achievementbot.bot.ITKAchievementBot;
+import com.efr.achievementbot.bot.JavaCodeBot;
 
 import lombok.Getter;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +14,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 public class BotConfig {
 
     @Bean
-    public TelegramBotsApi telegramBotsApi(ITKAchievementBot myTelegramBot) throws TelegramApiException {
+    public TelegramBotsApi telegramBotsApi(JavaCodeBot myTelegramBot) throws TelegramApiException {
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
         botsApi.registerBot(myTelegramBot);
         return botsApi;

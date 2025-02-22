@@ -1,6 +1,6 @@
 package com.efr.achievementbot.service.achievement.notification;
 
-import com.efr.achievementbot.bot.ITKAchievementBot;
+import com.efr.achievementbot.bot.JavaCodeBot;
 import com.efr.achievementbot.model.UserDB;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -29,12 +29,12 @@ public class AchievementNotificationService {
      * @param achievementTitle заголовок достижения
      */
     @Async("taskExecutor")
-    public void sendAchievementNotification(UserDB user, Message message, ITKAchievementBot bot, File imageFile, String achievementTitle) {
+    public void sendAchievementNotification(UserDB user, Message message, JavaCodeBot bot, File imageFile, String achievementTitle) {
         log.info("Начало отправки уведомления о достижении '{}' для пользователя '{}'", achievementTitle, user.getUserName());
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(user.getChatId().toString());
         sendPhoto.setMessageThreadId(message.getMessageThreadId());
-        sendPhoto.setCaption(user.getUserName() + " получает достижение: " + achievementTitle + "!");
+        sendPhoto.setCaption(user.getUserTag() + " получает достижение: " + achievementTitle + "!");
         sendPhoto.setPhoto(new InputFile(imageFile));
         try {
             bot.execute(sendPhoto);
@@ -56,7 +56,7 @@ public class AchievementNotificationService {
      * @param title   заголовок достижения
      */
     @Async("taskExecutor")
-    public void sendCustomAchievementNotification(String userTag, Long chatId, ITKAchievementBot bot, File image, String title) {
+    public void sendCustomAchievementNotification(String userTag, Long chatId, JavaCodeBot bot, File image, String title) {
         log.info("Начало отправки кастомного уведомления о достижении '{}' для пользователя с тегом '{}'", title, userTag);
         SendPhoto photo = new SendPhoto();
         photo.setChatId(chatId.toString());

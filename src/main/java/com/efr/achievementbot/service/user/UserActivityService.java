@@ -4,6 +4,8 @@ import com.efr.achievementbot.model.UserDB;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.time.LocalDateTime;
+
 /**
  * Сервис для обновления статистики активности пользователя.
  */
@@ -47,19 +49,20 @@ public class UserActivityService {
 
         // Увеличиваем счетчик сообщений
         user.setMessageCount(user.getMessageCount() + 1);
-
         // Обновление еженедельного счетчика
         user.setWeeklyMessageCount(user.getWeeklyMessageCount() + 1);
 
-        // Обновляем счетчик медиа, если сообщение содержит фото, видео, документ или голосовое сообщение
+        // Обновляем счетчик медиа, если сообщение содержит фото, видео, документ или голосовое
         if (message.hasPhoto() || message.hasVideo() || message.hasDocument() || message.hasVoice()) {
             user.setMediaCount(user.getMediaCount() + 1);
         }
-
         // Обновляем счетчик стикеров
         if (message.hasSticker()) {
             user.setStickerCount(user.getStickerCount() + 1);
         }
+
+        // Обновляем время последней активности
+        user.setLastActivity(LocalDateTime.now());
 
         // Сохраняем обновленные данные пользователя
         return userService.saveUser(user);

@@ -1,4 +1,4 @@
-package com.efr.achievementbot.config;
+package com.efr.achievementbot.config.image;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import java.awt.Point;
 
 @Getter
 @Setter
-public class TextDrawConfig {
+public class AchievementImageTextDrawDescriptionConfig {
     /**
      * Имя шрифта (например, "Arial").
      */
@@ -32,7 +32,7 @@ public class TextDrawConfig {
     /**
      * Координата Y для позиционирования текста.
      */
-    private int posY = 600;
+    private int posY = 590;
 
     /**
      * Максимальная длина строки для переноса текста.

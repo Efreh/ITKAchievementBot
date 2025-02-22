@@ -1,4 +1,4 @@
-package com.efr.achievementbot.config;
+package com.efr.achievementbot.config.bot;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,6 +12,5 @@ import org.springframework.context.annotation.Configuration;
 public class BotProperties {
     private String token;
     private String username;
-    private String groupId;
-    private String administratorId;
+    private String secretKey;
 }
