@@ -12,6 +12,5 @@ import org.springframework.context.annotation.Configuration;
 public class BotProperties {
     private String token;
     private String username;
-    private String groupId;
-    private String administratorId;
+    private String secretKey;
 }

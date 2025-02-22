@@ -31,6 +31,8 @@ import java.util.concurrent.ScheduledFuture;
 @RequiredArgsConstructor
 public class GoblinService {
 
+    private boolean activeGoblinFlag = false;
+
     private final GoblinRepository goblinRepository;
     private final UserRepository userRepository;
     private final ThreadPoolTaskScheduler taskScheduler;
@@ -54,11 +56,17 @@ public class GoblinService {
 
     // Метод для спауна гоблина – теперь включается описание гоблина
     public void spawnGoblin(Long chatId) {
+        if (activeGoblinFlag) {
+            log.info("spawnGoblin: уже есть активный гоблин, пропускаем спавн.");
+            return;
+        }
+
         List<Goblin> goblins = goblinRepository.findAll();
         if (goblins.isEmpty()) {
             log.info("В БД отсутствуют гоблины – активность не запускается.");
             return;
         }
+
         Goblin selectedGoblin = goblins.get(new Random().nextInt(goblins.size()));
         Integer threadId = threadTrackingService.getRandomThread(); // Выбираем случайный тред
 
@@ -96,6 +104,7 @@ public class GoblinService {
         } catch (TelegramApiException e) {
             log.error("Ошибка при отправке сообщения о гоблине: {}", e.getMessage(), e);
         }
+        activeGoblinFlag = true;
     }
 
 
@@ -161,6 +170,7 @@ public class GoblinService {
         } catch (TelegramApiException e) {
             log.error("Ошибка при отправке сообщения об успехе: {}", e.getMessage(), e);
         }
+        activeGoblinFlag = false;
     }
 
     // Метод, вызываемый по истечении 20 секунд, если гоблин не пойман
@@ -185,5 +195,6 @@ public class GoblinService {
         } catch (TelegramApiException e) {
             log.error("Ошибка при обработке истечения времени гоблина: {}", e.getMessage(), e);
         }
+        activeGoblinFlag = false;
     }
 }

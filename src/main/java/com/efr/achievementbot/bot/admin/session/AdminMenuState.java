@@ -1,24 +1,16 @@
 package com.efr.achievementbot.bot.admin.session;
 
-/**
- * Перечисление всех возможных состояний админского интерфейса.
- * Позволяет разбить логику бота на разные этапы, удобные при работе в стиле "мастера".
- */
 public enum AdminMenuState {
 
-    // Главное меню
+    IDLE,          // <- Добавили, чтобы у нас было состояние по умолчанию
     MAIN_MENU,
 
-    // Подменю для достижений (базовые + кастомные)
+    // --- Достижения
     ACHIEVEMENTS_MENU,
-
-    // Процесс добавления нового базового достижения
     ACHIEVEMENTS_ADD_TITLE,
     ACHIEVEMENTS_ADD_DESCRIPTION,
     ACHIEVEMENTS_ADD_WEIGHT,
     ACHIEVEMENTS_ADD_TYPE_SELECT,
-
-    // Процесс просмотра/редактирования достижений
     ACHIEVEMENTS_VIEW_LIST,
     ACHIEVEMENTS_VIEW_DETAILS,
     ACHIEVEMENTS_EDIT_TITLE,
@@ -27,14 +19,7 @@ public enum AdminMenuState {
     ACHIEVEMENTS_EDIT_TYPE,
     ACHIEVEMENTS_DELETE_CONFIRM,
 
-    // Процесс выдачи кастомного достижения
-    CUSTOM_ACHIEVEMENTS_USER_TAG,
-    CUSTOM_ACHIEVEMENTS_NAME,
-    CUSTOM_ACHIEVEMENTS_TITLE,
-    CUSTOM_ACHIEVEMENTS_DESCRIPTION,
-    CUSTOM_ACHIEVEMENTS_WEIGHT,
-
-    // Подменю для гоблинов
+    // --- Гоблины
     GOBLIN_MENU,
     GOBLIN_ADD_NAME,
     GOBLIN_ADD_DESCRIPTION,
@@ -52,7 +37,21 @@ public enum AdminMenuState {
     GOBLIN_EDIT_AWARD_POINTS,
     GOBLIN_DELETE_CONFIRM,
 
-    // Служебные (не обязательно использовать)
-    IDLE,
-    CANCEL
+    // --- Кастомные ачивки
+    CUSTOM_ACHIEVEMENTS_USER_TAG,
+    CUSTOM_ACHIEVEMENTS_NAME,
+    CUSTOM_ACHIEVEMENTS_TITLE,
+    CUSTOM_ACHIEVEMENTS_DESCRIPTION,
+    CUSTOM_ACHIEVEMENTS_WEIGHT,
+
+    // --- Настройки
+    BOT_SETTINGS_MENU,
+    BOT_SETTINGS_EDIT_COOLDOWN,
+    BOT_SETTINGS_EDIT_GOBLIN_ENABLED,
+    BOT_SETTINGS_EDIT_SPAWN_DAYS_MIN,
+    BOT_SETTINGS_EDIT_SPAWN_DAYS_MAX,
+    BOT_SETTINGS_EDIT_SPAWN_HOUR_START,
+    BOT_SETTINGS_EDIT_SPAWN_HOUR_END,
+    BOT_SETTINGS_EDIT_ACHIEVEMENT_COLOR,
+    BOT_SETTINGS_EDIT_DASHBOARD_COLOR
 }

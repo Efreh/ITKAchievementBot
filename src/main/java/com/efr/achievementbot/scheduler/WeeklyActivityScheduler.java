@@ -6,6 +6,7 @@ import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.repository.user.UserRepository;
 import com.efr.achievementbot.service.achievement.AchievementService;
 import com.efr.achievementbot.service.achievement.image.AchievementImageGenerator;
+import com.efr.achievementbot.service.config.BotConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +30,7 @@ public class WeeklyActivityScheduler {
     private final AchievementService achievementService;
     private final JavaCodeBot bot;
     private final AchievementImageGenerator imageGenerator;
-    private final BotProperties botProperties;
+    private final BotConfigService botConfigService;
 
     /**
      * Каждую неделю (или для проверки каждые 30 секунд) собирает топ-5 активных пользователей за неделю
@@ -74,7 +75,7 @@ public class WeeklyActivityScheduler {
                 String caption = captionBuilder.toString();
 
                 SendPhoto sendPhoto = new SendPhoto();
-                sendPhoto.setChatId(botProperties.getGroupId());
+                sendPhoto.setChatId(botConfigService.getConfig().getGroupId());
                 sendPhoto.setCaption(caption);
                 sendPhoto.setPhoto(new InputFile(dashboardImage));
                 bot.execute(sendPhoto);
