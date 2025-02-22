@@ -2,15 +2,11 @@ package com.efr.achievementbot.config.image;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-
-import java.awt.Color;
 
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "achievement.image")
 public class AchievementImageConfig {
     /**
      * Путь к шаблону изображения достижения.
@@ -20,10 +16,10 @@ public class AchievementImageConfig {
     /**
      * Настройки для отрисовки заголовка достижения.
      */
-    private AchievementImageTextDrawConfig title = new AchievementImageTextDrawConfig();
+    private AchievementImageTextDrawTitleConfig title = new AchievementImageTextDrawTitleConfig();
 
     /**
      * Настройки для отрисовки описания достижения.
      */
-    private AchievementImageTextDrawConfig description = new AchievementImageTextDrawConfig();
+    private AchievementImageTextDrawDescriptionConfig description = new AchievementImageTextDrawDescriptionConfig();
 }

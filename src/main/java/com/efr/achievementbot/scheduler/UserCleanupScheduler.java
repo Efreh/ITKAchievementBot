@@ -1,6 +1,5 @@
 package com.efr.achievementbot.scheduler;
 
-import com.efr.achievementbot.repository.user.UserRepository;
 import com.efr.achievementbot.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

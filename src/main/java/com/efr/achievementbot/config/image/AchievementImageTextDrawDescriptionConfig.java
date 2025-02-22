@@ -8,7 +8,7 @@ import java.awt.Point;
 
 @Getter
 @Setter
-public class AchievementImageTextDrawConfig {
+public class AchievementImageTextDrawDescriptionConfig {
     /**
      * Имя шрифта (например, "Arial").
      */
@@ -32,7 +32,7 @@ public class AchievementImageTextDrawConfig {
     /**
      * Координата Y для позиционирования текста.
      */
-    private int posY = 600;
+    private int posY = 590;
 
     /**
      * Максимальная длина строки для переноса текста.

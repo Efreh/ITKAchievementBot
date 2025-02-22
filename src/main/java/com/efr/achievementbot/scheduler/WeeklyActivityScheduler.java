@@ -1,7 +1,6 @@
 package com.efr.achievementbot.scheduler;
 
 import com.efr.achievementbot.bot.JavaCodeBot;
-import com.efr.achievementbot.config.bot.BotProperties;
 import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.repository.user.UserRepository;
 import com.efr.achievementbot.service.achievement.AchievementService;

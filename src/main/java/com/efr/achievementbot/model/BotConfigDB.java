@@ -31,6 +31,4 @@ public class BotConfigDB {
 
     // Цвет текста для дашборда
     private String dashboardTextColor;    // например: "#F0F0F0"
-
-    // При желании можно добавить и другие параметры для шрифтов, позиций и т.п.
 }

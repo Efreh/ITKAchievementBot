@@ -2,15 +2,12 @@ package com.efr.achievementbot.config.image;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.awt.Color;
 
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "dashboard.image")
 public class DashboardImageConfig {
     /**
      * Путь к шаблону дашборда.

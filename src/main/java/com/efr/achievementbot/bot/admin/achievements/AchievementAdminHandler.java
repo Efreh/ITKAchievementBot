@@ -7,6 +7,7 @@ import com.efr.achievementbot.bot.admin.session.AdminSession;
 import com.efr.achievementbot.model.AchievementDefinition;
 import com.efr.achievementbot.repository.achievement.AchievementDefinitionRepository;
 import com.efr.achievementbot.service.achievement.AchievementService;
+import com.efr.achievementbot.service.config.BotConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ public class AchievementAdminHandler {
 
     private final AchievementDefinitionRepository definitionRepository;
     private final AchievementService achievementService;
+    private final BotConfigService botConfigService;
 
     /**
      * Отображает меню по работе с достижениями (базовыми и кастомными).
@@ -478,7 +480,7 @@ public class AchievementAdminHandler {
                 session.getCustomTitle(),
                 session.getCustomDescription(),
                 session.getCustomWeight(),
-                chatId,
+                botConfigService.getConfig().getGroupId(),
                 bot
         );
 
