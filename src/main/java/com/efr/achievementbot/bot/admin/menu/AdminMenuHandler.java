@@ -7,6 +7,7 @@ import com.efr.achievementbot.bot.admin.session.AdminSession;
 import com.efr.achievementbot.bot.admin.achievements.AchievementAdminHandler;
 import com.efr.achievementbot.bot.admin.goblins.GoblinAdminHandler;
 import com.efr.achievementbot.config.bot.BotProperties;
+import com.efr.achievementbot.service.config.BotConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class AdminMenuHandler {
 
-    private final BotProperties botProperties;
+    private final BotConfigService botConfigService;
     private final AchievementAdminHandler achievementAdminHandler;
     private final GoblinAdminHandler goblinAdminHandler;
 
@@ -160,6 +161,6 @@ public class AdminMenuHandler {
     }
 
     private boolean isAdmin(Long userId) {
-        return userId.toString().equals(botProperties.getAdministratorId());
+        return userId.equals(botConfigService.getConfig().getAdminId());
     }
 }

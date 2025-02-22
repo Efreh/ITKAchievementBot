@@ -2,18 +2,22 @@ package com.efr.achievementbot.bot;
 
 import com.efr.achievementbot.bot.admin.menu.AdminMenuHandler;
 import com.efr.achievementbot.config.bot.BotProperties;
+import com.efr.achievementbot.model.BotConfigDB;
 import com.efr.achievementbot.model.UserDB;
 import com.efr.achievementbot.service.achievement.AchievementService;
 import com.efr.achievementbot.service.bot.ThreadTrackingService;
+import com.efr.achievementbot.service.config.BotConfigService;
 import com.efr.achievementbot.service.goblin.GoblinService;
 import com.efr.achievementbot.service.user.UserActivityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 @Slf4j
 @Component
@@ -21,7 +25,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class JavaCodeBot extends TelegramLongPollingBot {
 
     private final UserActivityService userActivityService;
-    private final BotProperties botProperties;
+    private final BotProperties botProperties;           // хранит token, username, secretKey
+    private final BotConfigService botConfigService;     // сервис для чтения/записи adminId, groupId из БД
+
     private final AchievementService achievementService;
     private final AdminMenuHandler adminMenuHandler;
     private final GoblinService goblinService;
@@ -29,65 +35,155 @@ public class JavaCodeBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        // 1. Обработка колбэка от "гоблинов" (Inline кнопки)
+        // 1. Обработка CallbackQuery от "гоблинов" (Inline-кнопки)
         if (update.hasCallbackQuery()) {
             goblinService.handleGoblinCatch(update.getCallbackQuery());
             return;
         }
 
-        // 2. Если нет сообщения, пропускаем
+        // 2. Если нет сообщения — пропускаем
         if (!update.hasMessage()) {
             log.debug("Пропуск обновления без сообщения.");
             return;
         }
 
         Message message = update.getMessage();
-        Chat chat = message.getChat();  // информация о чате
+        Chat chat = message.getChat();
         Long chatId = chat.getId();
         Long senderId = message.getFrom().getId();
 
-        log.info("Получено сообщение из чата ID: {}", chatId);
+        // 3. Проверяем команды (обязательно перед остальной логикой)
+        String text = message.getText();
+        if (text != null) {
+            // Команда для регистрации админа: /register_admin secretKey
+            if (text.startsWith("/register_admin")) {
+                handleRegisterAdminCommand(message);
+                return; // сразу выходим после обработки
+            }
+            // Команда для регистрации группы: /register_chat
+            if (text.startsWith("/register_chat")) {
+                handleRegisterChatCommand(message);
+                return; // сразу выходим
+            }
+        }
 
-        // Если в сообщении есть "ThreadId" (т.е. это саб-тред в группе)
+        // 4. Регистрируем threadId, если это саб-тред (Thread в группах)
         Integer threadId = message.getMessageThreadId();
         if (threadId != null) {
             threadTrackingService.registerThread(threadId);
         }
 
-        // 3. Если это группа (или супер-группа) - обрабатываем только механику достижений, гоблинов и т.п.
-        //    Админское меню в группе не показываем.
+        // 5. Проверяем, что это за тип чата?
         if (chat.isGroupChat() || chat.isSuperGroupChat()) {
-            // Можно дополнительно проверить, что chatId совпадает с botProperties.getGroupId()
-            // Если хотите игнорировать другие группы.
-            if (!chatId.toString().equals(botProperties.getGroupId())) {
-                log.warn("Чат {} не соответствует groupId бота, игнорируем.", chatId);
+            // Получаем из БД текущие настройки
+            BotConfigDB cfg = botConfigService.getConfig();
+            Long savedGroupId = cfg.getGroupId();
+
+            // Если groupId ещё не задан или не совпадает — игнорируем
+            if (savedGroupId == null || !savedGroupId.equals(chatId)) {
+                log.warn("Сообщение из группы {}, но зарегистрирована другая группа {}. Пропускаем.", chatId, savedGroupId);
                 return;
             }
 
-            // Допустим, выполняем логику, связанную с сообщениями (счётчики, достижения):
+            // Логика для группы: обновляем активность пользователя, проверяем достижения...
             UserDB user = userActivityService.updateUserActivity(message);
             achievementService.checkAchievements(user, message, this);
-            // Если нужно, сюда можно вставить handleGoblinSpawn() или другую групповую логику
+            // и т.д.
             return;
         }
 
-        // 4. Если это приватный (личный) чат:
         if (chat.isUserChat()) {
-            // Проверяем, админ ли отправитель
+            // Личный чат — проверим, админ ли это
             if (isAdmin(senderId)) {
-                // Логика админ-меню
+                // Админ-меню
                 adminMenuHandler.handleAdminCommand(update, this);
             } else {
-                // Не админ — при желании можно ответить "Вы не админ" или вообще игнорировать
-                log.info("Сообщение от не-админа в личном чате, пропускаем или отвечаем");
-                // Пример:
-                // sendSimpleMessage(chatId, "Извините, эта функция доступна только администратору");
+                // Если хотите — отвечайте, что эта функция только для админа
+                sendSimpleMessage(chatId, "Извините, но это личный чат бота, доступен только администратору.");
             }
             return;
         }
 
-        // 5. Если это канал или какой-то другой тип (редко), можно игнорировать
-        log.debug("Чат {} имеет тип, не являющийся group/supergroup/private, пропуск", chatId);
+        // Если это канал или какой-то другой тип — игнорируем
+        log.debug("Чат {} имеет тип, не являющийся group/supergroup/private, пропускаем.", chatId);
+    }
+
+    /**
+     * Команда /register_admin secretKey
+     * Регистрирует отправителя как администратора, если совпал secretKey.
+     */
+    private void handleRegisterAdminCommand(Message message) {
+        String text = message.getText();
+        Long chatId = message.getChatId();
+        String[] parts = text.split("\\s+");
+        if (parts.length < 2) {
+            sendSimpleMessage(chatId, "Использование: /register_admin secretKey");
+            return;
+        }
+        String inputSecret = parts[1];
+
+        // Сравниваем с тем, что хранится в BotProperties (жёстко прописанный секрет)
+        if (!botProperties.getSecretKey().equals(inputSecret)) {
+            sendSimpleMessage(chatId, "Неверный секретный ключ!");
+            return;
+        }
+
+        Long newAdminId = message.getFrom().getId();
+
+        // Записываем adminId в БД
+        BotConfigDB cfg = botConfigService.getConfig();
+        cfg.setAdminId(newAdminId);
+        botConfigService.saveConfig(cfg);
+
+        sendSimpleMessage(chatId, "Поздравляем! Теперь вы администратор. Ваш ID: " + newAdminId);
+    }
+
+    /**
+     * Команда /register_chat
+     * Регистрирует текущую группу как основную группу бота.
+     */
+    private void handleRegisterChatCommand(Message message) {
+        Long chatId = message.getChatId();
+
+        // Проверяем, что команда запущена в группе/супергруппе
+        if (!message.getChat().isGroupChat() && !message.getChat().isSuperGroupChat()) {
+            sendSimpleMessage(chatId, "Данную команду нужно выполнять внутри группы (или супергруппы).");
+            return;
+        }
+
+        // Записываем groupId в БД
+        BotConfigDB cfg = botConfigService.getConfig();
+        cfg.setGroupId(chatId);
+        botConfigService.saveConfig(cfg);
+
+        sendSimpleMessage(chatId, "Группа зарегистрирована! Теперь groupId=" + chatId);
+    }
+
+    /**
+     * Проверка, является ли пользователь админом, на основе данных из БД.
+     */
+    private boolean isAdmin(Long userId) {
+        BotConfigDB cfg = botConfigService.getConfig();
+        // Если в БД ещё нет adminId — возврат false
+        if (cfg.getAdminId() == null) {
+            return false;
+        }
+        return cfg.getAdminId().equals(userId);
+    }
+
+    /**
+     * Утилита для быстрой отправки текстового сообщения.
+     */
+    private void sendSimpleMessage(Long chatId, String text) {
+        SendMessage sm = SendMessage.builder()
+                .chatId(chatId.toString())
+                .text(text)
+                .build();
+        try {
+            execute(sm);
+        } catch (TelegramApiException e) {
+            log.error("Ошибка при отправке сообщения: {}", e.getMessage(), e);
+        }
     }
 
     @Override
@@ -98,12 +194,5 @@ public class JavaCodeBot extends TelegramLongPollingBot {
     @Override
     public String getBotToken() {
         return botProperties.getToken();
-    }
-
-    /**
-     * Проверяет, является ли отправитель администратором.
-     */
-    private boolean isAdmin(Long userId) {
-        return userId.toString().equals(botProperties.getAdministratorId());
     }
 }

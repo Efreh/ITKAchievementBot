@@ -1,6 +1,7 @@
 package com.efr.achievementbot.scheduler;
 
 import com.efr.achievementbot.config.bot.BotProperties;
+import com.efr.achievementbot.service.config.BotConfigService;
 import com.efr.achievementbot.service.goblin.GoblinService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ import java.util.concurrent.ScheduledFuture;
 @RequiredArgsConstructor
 public class GoblinScheduler {
 
-    private final BotProperties botProperties;
+    private final BotConfigService botConfigService;
     private final GoblinService goblinService;
     private final ThreadPoolTaskScheduler taskScheduler;
     private final Random random = new Random();
@@ -30,7 +31,7 @@ public class GoblinScheduler {
         scheduleGoblinSpawn();
     }
 
-//    private void scheduleGoblinSpawn() {
+    //    private void scheduleGoblinSpawn() {
 //        long now = System.currentTimeMillis();
 //        // Случайный интервал: 2 или 3 дня
 //        int daysInterval = random.nextBoolean() ? 2 : 3;
@@ -49,8 +50,8 @@ public class GoblinScheduler {
 //        log.info("Следующий спавн гоблина запланирован на: {}", nextSpawn);
 //
 //        scheduledTask = taskScheduler.schedule(() -> {
-//            Long chatId = Long.parseLong(botProperties.getGroupId());
-//            goblinService.spawnGoblin(chatId);
+//    Long groupId = botConfigService.getConfig().getGroupId();
+//            goblinService.spawnGoblin(groupId);
 //            scheduleGoblinSpawn();
 //        }, nextSpawn);
 //    }
@@ -62,8 +63,8 @@ public class GoblinScheduler {
 
     public void scheduleGoblinSpawn() {
         scheduledTask = taskScheduler.scheduleAtFixedRate(() -> {
-            Long chatId = Long.parseLong(botProperties.getGroupId());
-            goblinService.spawnGoblin(chatId);
+            Long groupId = botConfigService.getConfig().getGroupId();
+            goblinService.spawnGoblin(groupId);
             log.info("Спавн гоблина запущен по тестовому расписанию (30 секунд)");
         }, 60000); // 30 секунд = 30000 мс
     }
