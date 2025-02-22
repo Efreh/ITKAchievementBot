@@ -21,7 +21,7 @@ public class AchievementImageTextDrawTitleConfig {
     /**
      * Размер шрифта.
      */
-    private int fontSize = 35;
+    private int fontSize = 33;
 
     /**
      * Координата X для позиционирования текста.

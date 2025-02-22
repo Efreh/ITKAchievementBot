@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode(exclude = "achievements")
 @Entity
+@Table(name = "achievement_definition")
 public class AchievementDefinition {
 
     @Id

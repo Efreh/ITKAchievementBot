@@ -32,12 +32,12 @@ public class AchievementImageTextDrawDescriptionConfig {
     /**
      * Координата Y для позиционирования текста.
      */
-    private int posY = 590;
+    private int posY = 600;
 
     /**
      * Максимальная длина строки для переноса текста.
      */
-    private int maxLineLength = 35;
+    private int maxLineLength = 33;
 
     /**
      * Формирует объект Font на основе настроек.

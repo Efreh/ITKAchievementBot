@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: itkachievementbot_db
+    environment:
+      POSTGRES_DB: itkach
+      POSTGRES_USER: itkach
+      POSTGRES_PASSWORD: itkach
+    # Том, где лежат файлы БД, чтобы данные сохранялись между перезапусками
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Папка с вашими sql-скриптами (01-schema.sql, data.sql), которые выполнятся один раз при инициализации
+      - ./sql:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+
+  bot:
+    build: .
+    container_name: itkachievementbot_app
+    depends_on:
+      - postgres
+    environment:
+      # Настройки подключения к PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/itkach
+      SPRING_DATASOURCE_USERNAME: itkach
+      SPRING_DATASOURCE_PASSWORD: itkach
+
+      # Отключаем авто-генерацию схемы Hibernate, чтобы использовать наши скрипты
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+
+      # Параметры бота, из .env
+      bot.token: ${BOT_TOKEN}
+      bot.username: ${BOT_USERNAME}
+      bot.secretKey: ${BOT_SECRET_KEY}
+
+    ports:
+      - "8080:8080"
+
+volumes:
+  db_data:

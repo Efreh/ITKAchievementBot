@@ -22,6 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -51,8 +52,8 @@ public class GoblinService {
         private ScheduledFuture<?> expirationTask;
     }
 
-    private final String goblinImagePath = "src/main/resources/images/goblins/greedy_goblin.jpg";
-    private final String potionImagePath = "src/main/resources/images/potions/potion.jpg";
+    private final String goblinImagePath = "images/goblins/greedy_goblin.jpg";
+    private final String potionImagePath = "images/potions/potion.jpg";
 
     // Метод для спауна гоблина – теперь включается описание гоблина
     public void spawnGoblin(Long chatId) {
@@ -87,7 +88,14 @@ public class GoblinService {
             log.info("Гоблин заспавнен в треде: {}", threadId);
 
             sendPhoto.setCaption(spawnText);
-            sendPhoto.setPhoto(new InputFile(new File(goblinImagePath)));
+
+            InputStream is = getClass().getClassLoader().getResourceAsStream(goblinImagePath);
+            if (is == null) {
+                log.error("Не удалось найти ресурс: {}", goblinImagePath);
+                return;
+            }
+            sendPhoto.setPhoto(new InputFile(is, "greedy_goblin.jpg"));
+
             sendPhoto.setReplyMarkup(inlineKeyboard);
             var sentMessage = applicationContext.getBean(JavaCodeBot.class).execute(sendPhoto);
             Integer messageId = sentMessage.getMessageId();
@@ -162,7 +170,15 @@ public class GoblinService {
             SendPhoto successPhoto = new SendPhoto();
             successPhoto.setChatId(chatId.toString());
             successPhoto.setCaption(successText);
-            successPhoto.setPhoto(new InputFile(new File(potionImagePath)));
+
+            InputStream is = getClass().getClassLoader().getResourceAsStream(potionImagePath);
+            if (is == null) {
+                log.error("Не удалось найти ресурс: {}", potionImagePath);
+                return;
+            }
+            successPhoto.setPhoto(new InputFile(is, "greedy_goblin.jpg"));
+
+
             if (activeGoblin.threadId != null) {
                 successPhoto.setMessageThreadId(activeGoblin.threadId); // Отправляем в тот же тред
             }
