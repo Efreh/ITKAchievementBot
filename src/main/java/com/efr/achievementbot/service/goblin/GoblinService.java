@@ -52,8 +52,8 @@ public class GoblinService {
         private ScheduledFuture<?> expirationTask;
     }
 
-    private final String goblinImagePath = "images/goblins/greedy_goblin.jpg";
-    private final String potionImagePath = "images/potions/potion.jpg";
+    private final String goblinImagePath = "images/goblins/greedy_goblin2.jpg";
+    private final String potionImagePath = "images/potions/potion2.jpg";
 
     // Метод для спауна гоблина – теперь включается описание гоблина
     public void spawnGoblin(Long chatId) {
@@ -94,7 +94,7 @@ public class GoblinService {
                 log.error("Не удалось найти ресурс: {}", goblinImagePath);
                 return;
             }
-            sendPhoto.setPhoto(new InputFile(is, "greedy_goblin.jpg"));
+            sendPhoto.setPhoto(new InputFile(is, "greedy_goblin2.jpg"));
 
             sendPhoto.setReplyMarkup(inlineKeyboard);
             var sentMessage = applicationContext.getBean(JavaCodeBot.class).execute(sendPhoto);
@@ -176,7 +176,7 @@ public class GoblinService {
                 log.error("Не удалось найти ресурс: {}", potionImagePath);
                 return;
             }
-            successPhoto.setPhoto(new InputFile(is, "greedy_goblin.jpg"));
+            successPhoto.setPhoto(new InputFile(is, "potion2.jpg"));
 
 
             if (activeGoblin.threadId != null) {
