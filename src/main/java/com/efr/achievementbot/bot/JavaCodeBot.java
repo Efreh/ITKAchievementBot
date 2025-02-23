@@ -26,7 +26,7 @@ public class JavaCodeBot extends TelegramLongPollingBot {
 
     private final UserActivityService userActivityService;
     private final BotProperties botProperties;           // хранит token, username, secretKey
-    private final BotConfigService botConfigService;     // сервис для чтения/записи adminId, groupId из БД
+    private final BotConfigService botConfigService;       // сервис для чтения/записи adminId, groupId из БД
 
     private final AchievementService achievementService;
     private final AdminMenuHandler adminMenuHandler;
@@ -141,9 +141,11 @@ public class JavaCodeBot extends TelegramLongPollingBot {
     /**
      * Команда /register_chat
      * Регистрирует текущую группу как основную группу бота.
+     * Теперь регистрация разрешается только один раз и выполняется только администратором.
      */
     private void handleRegisterChatCommand(Message message) {
         Long chatId = message.getChatId();
+        Long senderId = message.getFrom().getId();
 
         // Проверяем, что команда запущена в группе/супергруппе
         if (!message.getChat().isGroupChat() && !message.getChat().isSuperGroupChat()) {
@@ -151,8 +153,20 @@ public class JavaCodeBot extends TelegramLongPollingBot {
             return;
         }
 
-        // Записываем groupId в БД
+        // Проверяем, что команду выполняет администратор
+        if (!isAdmin(senderId)) {
+            sendSimpleMessage(chatId, "Команда /register_chat доступна только администратору.");
+            return;
+        }
+
+        // Получаем текущую конфигурацию из БД
         BotConfigDB cfg = botConfigService.getConfig();
+        if (cfg.getGroupId() != null) {
+            sendSimpleMessage(chatId, "Бот уже зарегистрирован в группе с id=" + cfg.getGroupId() + ". Регистрация повторно не допускается.");
+            return;
+        }
+
+        // Регистрируем текущую группу
         cfg.setGroupId(chatId);
         botConfigService.saveConfig(cfg);
 
