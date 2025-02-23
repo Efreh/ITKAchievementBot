@@ -105,7 +105,7 @@ public class GoblinService {
             activeGoblin.messageId = messageId;
             activeGoblin.threadId = threadId; // Запоминаем тред, в котором появился гоблин
             ScheduledFuture<?> future = taskScheduler.schedule(() ->
-                    expireGoblin(chatId, messageId), new Date(System.currentTimeMillis() + 20000));
+                    expireGoblin(chatId, messageId), new Date(System.currentTimeMillis() + 25000));  // Задать в меню параметр жизни гоблина
             activeGoblin.expirationTask = future;
 
             activeGoblins.put(chatId, activeGoblin);
