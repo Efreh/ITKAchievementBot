@@ -122,16 +122,22 @@ public class JavaCodeBot extends TelegramLongPollingBot {
         }
         String inputSecret = parts[1];
 
-        // Сравниваем с тем, что хранится в BotProperties (жёстко прописанный секрет)
+        // Проверяем секретный ключ
         if (!botProperties.getSecretKey().equals(inputSecret)) {
             sendSimpleMessage(chatId, "Неверный секретный ключ!");
+            return;
+        }
+
+        // Получаем текущую конфигурацию и проверяем, зарегистрирован ли уже администратор
+        BotConfigDB cfg = botConfigService.getConfig();
+        if (cfg.getAdminId() != null) {
+            sendSimpleMessage(chatId, "Администратор уже зарегистрирован с id=" + cfg.getAdminId());
             return;
         }
 
         Long newAdminId = message.getFrom().getId();
 
         // Записываем adminId в БД
-        BotConfigDB cfg = botConfigService.getConfig();
         cfg.setAdminId(newAdminId);
         botConfigService.saveConfig(cfg);
 
